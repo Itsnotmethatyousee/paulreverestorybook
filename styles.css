@@ -706,6 +706,21 @@ progress::-webkit-progress-value {
   line-height: 1.55;
 }
 
+.poem-line.locked-line {
+  opacity: 0.72;
+}
+
+.poem-line.target-line {
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: rgba(255, 195, 92, 0.08);
+  border: 1px solid rgba(255, 195, 92, 0.18);
+}
+
+.poem-line.revealed-line {
+  color: #eef7ff;
+}
+
 .poem-line:last-child {
   margin-bottom: 0;
 }
@@ -744,6 +759,11 @@ progress::-webkit-progress-value {
 .ghost-word {
   letter-spacing: 0.12em;
   color: rgba(255, 255, 255, 0.4);
+}
+
+.blurred-line {
+  filter: blur(5px);
+  user-select: none;
 }
 
 .cue-word {

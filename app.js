@@ -2,11 +2,18 @@ const STORAGE_KEY = "lantern-quest-storybook-progress-v3";
 const SETTINGS_KEY = "lantern-quest-storybook-settings-v3";
 const LEGACY_PROGRESS_KEYS = ["lantern-quest-progress-v2", "lantern-quest-progress-v1"];
 const LEGACY_SETTINGS_KEYS = ["lantern-quest-settings-v2", "lantern-quest-settings-v1"];
-const HEADTTS_VERSION = "1.1.0";
-const HEADTTS_MODULE_URL = `https://cdn.jsdelivr.net/npm/@met4citizen/headtts@${HEADTTS_VERSION}/+esm`;
-const HEADTTS_WORKER_URL = `https://cdn.jsdelivr.net/npm/@met4citizen/headtts@${HEADTTS_VERSION}/modules/worker-tts.mjs`;
-const HEADTTS_DICTIONARY_URL = `https://cdn.jsdelivr.net/npm/@met4citizen/headtts@${HEADTTS_VERSION}/dictionaries/`;
-const HEADTTS_VOICE_LABELS = {
+const KOKORO_JS_URL = "https://cdn.jsdelivr.net/npm/kokoro-js@1.2.0/+esm";
+const KOKORO_MODEL_ID = "onnx-community/Kokoro-82M-v1.0-ONNX";
+const TRANSFORMERS_JS_URL = "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.7.6/+esm";
+const WHISPER_MODEL_ID = "Xenova/whisper-base.en";
+const MURF_WORKER_URL = "https://paul-revere-murf.alex-8ff.workers.dev/";
+const MURF_DEFAULT_VOICE = {
+  voiceId: "Charles",
+  style: "Conversational",
+  model: "Falcon",
+  locale: "en-US",
+};
+const KOKORO_VOICE_LABELS = {
   af_bella: "Bella",
   af_sarah: "Sarah",
   am_fenrir: "Fenrir",
@@ -454,9 +461,22 @@ const state = {
     ambientNodes: null,
     ambientAudio: null,
     speechRecognition: null,
-    headtts: null,
-    headttsInitPromise: null,
-    headttsStatus: "idle",
+    whisperTranscriber: null,
+    whisperInitPromise: null,
+    whisperStatus: "idle",
+    whisperRecorder: null,
+    whisperStream: null,
+    whisperChunks: [],
+    whisperAnalyser: null,
+    whisperSourceNode: null,
+    whisperSilenceFrame: null,
+    whisperSilenceSinceMs: 0,
+    whisperHeardSpeech: false,
+    isTranscribing: false,
+    murfStatus: "idle",
+    kokoroTts: null,
+    kokoroInitPromise: null,
+    kokoroStatus: "idle",
     neuralAudio: null,
     neuralAudioUrl: null,
     isListening: false,
@@ -515,6 +535,7 @@ const elements = {
   memorizeInstruction: document.getElementById("memorizeInstruction"),
   memorizePrompt: document.getElementById("memorizePrompt"),
   memorizeAttemptInput: document.getElementById("memorizeAttemptInput"),
+  memorizeRecordBtn: document.getElementById("memorizeRecordBtn"),
   memorizeHintBtn: document.getElementById("memorizeHintBtn"),
   memorizeListenBtn: document.getElementById("memorizeListenBtn"),
   memorizeCheckBtn: document.getElementById("memorizeCheckBtn"),
@@ -599,7 +620,7 @@ function bindEvents() {
   elements.cadenceToggleBtn.addEventListener("click", toggleCadence);
   elements.ambientToggleBtn.addEventListener("click", toggleAmbient);
   elements.prevChapterBtn.addEventListener("click", () => moveChapter(-1));
-  elements.nextChapterBtn.addEventListener("click", () => moveChapter(1));
+  elements.nextChapterBtn.addEventListener("click", advanceStoryNavigation);
 
   elements.memorizeHintBtn.addEventListener("click", () => {
     state.ui.currentHintLevel += 1;
@@ -609,6 +630,7 @@ function bindEvents() {
     const chapter = getActiveChapter();
     if (chapter) speakLines(chapter.lines);
   });
+  elements.memorizeRecordBtn.addEventListener("click", toggleSpeechRecording);
   elements.memorizeCheckBtn.addEventListener("click", handleMemorizeCheck);
   elements.proveHintBtn.addEventListener("click", handleProveHint);
   elements.proveCheckBtn.addEventListener("click", handleProveCheck);
@@ -741,14 +763,14 @@ function loadSettings(scheduleConfig) {
   const current = safelyParse(localStorage.getItem(SETTINGS_KEY));
   const legacy = LEGACY_SETTINGS_KEYS.map((key) => safelyParse(localStorage.getItem(key))).find(Boolean);
   const saved = current ?? legacy;
-  const savedVoicePreference = saved?.preferredVoiceURI === "auto" ? "browser:auto" : saved?.preferredVoiceURI;
+  const savedVoicePreference = saved?.preferredVoiceURI === "browser:auto" ? "murf:charles" : saved?.preferredVoiceURI;
   return {
     progressionMode: saved?.progressionMode ?? scheduleConfig.defaultProgressionMode ?? "manual",
     manualActiveSectionId: saved?.manualActiveSectionId ?? scheduleConfig.manualActiveSectionId,
     showExplanations: saved?.showExplanations ?? true,
     speechEnabled: saved?.speechEnabled ?? true,
     strictnessLevel: saved?.strictnessLevel ?? "standard",
-    preferredVoiceURI: savedVoicePreference ?? "browser:auto",
+    preferredVoiceURI: savedVoicePreference ?? "murf:charles",
   };
 }
 
@@ -808,19 +830,15 @@ function populateSettings() {
 function populateVoiceSelect() {
   const voices = state.ui.availableVoices.filter((voice) => /^en(-|_|$)/i.test(voice.lang ?? "") || /english/i.test(voice.name));
   const autoVoice = getPreferredVoice();
-  const neuralOptions = supportsHeadTTS()
-    ? Object.entries(HEADTTS_VOICE_LABELS)
-      .map(([voiceId, label]) => `<option value="headtts:${voiceId}">Neural (experimental): ${escapeHtml(label)}</option>`)
-    : [];
   const options = [
-    `<option value="browser:auto">Browser auto (${escapeHtml(autoVoice?.name ?? "Best available English voice")})</option>`,
-    ...neuralOptions,
+    `<option value="murf:charles">Murf: Charles</option>`,
+    `<option value="browser:auto">Browser fallback (${escapeHtml(autoVoice?.name ?? "Best available English voice")})</option>`,
     ...voices.map((voice) => `<option value="${escapeHtml(voice.voiceURI)}">${escapeHtml(`Browser: ${voice.name} (${voice.lang})`)}</option>`),
   ];
   elements.voiceSelect.innerHTML = options.join("");
-  elements.voiceSelect.value = state.settings.preferredVoiceURI ?? "browser:auto";
+  elements.voiceSelect.value = state.settings.preferredVoiceURI ?? "murf:charles";
   if (![...elements.voiceSelect.options].some((option) => option.value === elements.voiceSelect.value)) {
-    elements.voiceSelect.value = "browser:auto";
+    elements.voiceSelect.value = "murf:charles";
   }
 }
 
@@ -918,8 +936,15 @@ function renderStoryPanel() {
     questDone ? "positive" : "neutral",
   );
 
+  const isLastScene = chapterIndex >= getActiveChapters().length - 1;
+  const nextSection = getAdjacentSection(1);
   elements.prevChapterBtn.disabled = chapterIndex === 0;
-  elements.nextChapterBtn.disabled = chapterIndex >= Math.min(getStoryUnlockedChapterIndex() + 1, getActiveChapters().length - 1) || !questDone;
+  elements.nextChapterBtn.textContent = isLastScene ? "Next chapter" : "Next scene";
+  if (isLastScene) {
+    elements.nextChapterBtn.disabled = !questDone || !nextSection;
+  } else {
+    elements.nextChapterBtn.disabled = chapterIndex >= Math.min(getStoryUnlockedChapterIndex() + 1, getActiveChapters().length - 1) || !questDone;
+  }
 }
 
 function renderQuestPanel(chapter, questDone) {
@@ -1040,13 +1065,15 @@ function renderMemorizePanel() {
   const stage = Math.min(chapterProgress.memorizeStage, 5);
   const stageDef = stageDefinitions[stage - 1];
   const focusLine = getFocusLine(chapter, "memorize");
+  const progressCount = Math.min(chapterProgress.memorizeLineIndex, chapter.lines.length);
 
   elements.memorizeCheckpointTitle.textContent = chapter.title;
   elements.memorizeStageBadge.textContent = stageDef.label;
-  elements.memorizeLineRange.textContent = `Lines ${chapter.lineStart}-${chapter.lineEnd}`;
-  elements.memorizeInstruction.textContent = stageDef.instruction;
-  elements.memorizePrompt.innerHTML = renderPracticeMarkup(chapter.lines, focusLine, stage);
+  elements.memorizeLineRange.textContent = focusLine ? `Line ${focusLine.lineNumber} next • ${progressCount}/${chapter.lines.length} unlocked` : `Lines ${chapter.lineStart}-${chapter.lineEnd}`;
+  elements.memorizeInstruction.textContent = `${stageDef.instruction} Unlock each line in order. Once one is right, it appears and the next one stays hidden.`;
+  elements.memorizePrompt.innerHTML = renderPracticeMarkup(chapter.lines, focusLine, stage, chapterProgress.memorizeLineIndex);
   elements.memorizeAttemptInput.disabled = !storyDone;
+  elements.memorizeRecordBtn.disabled = !storyDone || !focusLine || !state.settings.speechEnabled || !hasMicInputSupport() || state.ui.isTranscribing;
   elements.memorizeCheckBtn.disabled = !storyDone;
   elements.memorizeHintBtn.disabled = !storyDone;
   elements.memorizeListenBtn.disabled = !storyDone || !state.settings.speechEnabled;
@@ -1076,7 +1103,7 @@ function renderProvePanel() {
   elements.proveAttemptInput.disabled = !storyDone || !line;
   elements.proveCheckBtn.disabled = !storyDone || !line;
   elements.proveHintBtn.disabled = !storyDone || !line;
-  elements.recordBtn.disabled = !storyDone || !line || !state.settings.speechEnabled || !state.ui.speechRecognition;
+  elements.recordBtn.disabled = !storyDone || !line || !state.settings.speechEnabled || !hasMicInputSupport() || state.ui.isTranscribing;
 
   if (!storyDone) {
     setFeedback(elements.proveFeedback, "Complete the story scene first. The recital should come after the meaning.", "warning");
@@ -1164,6 +1191,7 @@ function ensureProgressShape() {
       state.progress.sections[section.id].chapters[chapter.id] = {
         storyActions: {},
         memorizeStage: 1,
+        memorizeLineIndex: 0,
         lines: {},
         proveComplete: false,
       };
@@ -1172,6 +1200,7 @@ function ensureProgressShape() {
     if (!chapterProgress.storyActions) chapterProgress.storyActions = {};
     if (typeof chapterProgress.activeStoryActionId !== "string") chapterProgress.activeStoryActionId = "";
     if (typeof chapterProgress.memorizeStage !== "number") chapterProgress.memorizeStage = 1;
+    if (typeof chapterProgress.memorizeLineIndex !== "number") chapterProgress.memorizeLineIndex = 0;
     if (!chapterProgress.lines) chapterProgress.lines = {};
     if (typeof chapterProgress.proveComplete !== "boolean") chapterProgress.proveComplete = false;
 
@@ -1307,12 +1336,59 @@ function moveChapter(direction) {
   setActiveChapter(chapters[nextIndex]?.id ?? state.ui.activeChapterId);
 }
 
+function advanceStoryNavigation() {
+  const chapters = getActiveChapters();
+  const currentIndex = chapters.findIndex((chapter) => chapter.id === state.ui.activeChapterId);
+  const currentChapter = chapters[currentIndex];
+  if (!currentChapter) return;
+
+  const chapterProgress = getChapterProgress(currentChapter.id);
+  const questDone = currentChapter.actions.every((action) => chapterProgress.storyActions[action.id]);
+  if (!questDone) return;
+
+  const isLastScene = currentIndex >= chapters.length - 1;
+  if (!isLastScene) {
+    moveChapter(1);
+    return;
+  }
+
+  const nextSection = getAdjacentSection(1);
+  if (!nextSection) return;
+  goToSection(nextSection.id);
+}
+
 function setActiveChapter(chapterId) {
   if (!chapterId || chapterId === state.ui.activeChapterId) return;
   state.ui.previousChapterId = state.ui.activeChapterId;
   state.ui.activeChapterId = chapterId;
   state.ui.currentHintLevel = 0;
   state.ui.chapterTransition = 1;
+  render();
+}
+
+function getAdjacentSection(direction) {
+  const sections = state.scheduleConfig.sections;
+  const activeSection = getActiveSection();
+  const currentIndex = sections.findIndex((section) => section.id === activeSection.id);
+  if (currentIndex < 0) return null;
+  return sections[currentIndex + direction] ?? null;
+}
+
+function goToSection(sectionId) {
+  const nextSection = state.scheduleConfig.sections.find((section) => section.id === sectionId);
+  if (!nextSection) return;
+  state.settings.manualActiveSectionId = nextSection.id;
+  if (state.settings.progressionMode !== "manual") {
+    state.settings.progressionMode = "manual";
+    elements.autoModeToggle.checked = false;
+  }
+  saveSettings();
+  ensureProgressShape();
+  const chapters = getActiveChapters();
+  state.ui.previousChapterId = null;
+  state.ui.activeChapterId = chapters[0]?.id ?? null;
+  state.ui.chapterTransition = 0;
+  state.ui.currentHintLevel = 0;
   render();
 }
 
@@ -1342,20 +1418,34 @@ function revisitStoryAction(chapter, action) {
 function handleMemorizeCheck() {
   const chapter = getActiveChapter();
   const focusLine = getFocusLine(chapter, "memorize");
+  if (!focusLine) {
+    setFeedback(elements.memorizeFeedback, "This memorization stage is already complete. Move on to the next stage or recital.", "positive");
+    return;
+  }
   const answer = elements.memorizeAttemptInput.value.trim();
   if (!answer) {
-    setFeedback(elements.memorizeFeedback, "Type the focus line so I can help check it.", "warning");
+    setFeedback(elements.memorizeFeedback, "Type the next hidden line so I can help check it.", "warning");
     return;
   }
 
   const result = evaluateAttempt(answer, focusLine.text, state.settings.strictnessLevel);
   if (result.outcome === "pass") {
     const chapterProgress = getChapterProgress(chapter.id);
-    chapterProgress.memorizeStage = Math.min(chapterProgress.memorizeStage + 1, 5);
+    chapterProgress.memorizeLineIndex += 1;
+    if (chapterProgress.memorizeLineIndex >= chapter.lines.length) {
+      chapterProgress.memorizeStage = Math.min(chapterProgress.memorizeStage + 1, 5);
+      chapterProgress.memorizeLineIndex = 0;
+    }
     elements.memorizeAttemptInput.value = "";
     state.ui.currentHintLevel = 0;
     saveProgress();
-    setFeedback(elements.memorizeFeedback, "Nice work. That memory stage is complete.", "positive");
+    setFeedback(
+      elements.memorizeFeedback,
+      chapterProgress.memorizeLineIndex === 0
+        ? "Nice work. You cleared that whole memory stage and unlocked the next one."
+        : "Nice work. That line is unlocked. The next hidden line is ready.",
+      "positive",
+    );
     renderMemorizePanel();
     return;
   }
@@ -1430,7 +1520,7 @@ function maybeCompleteChapter(chapterId) {
 function getFocusLine(chapter, mode) {
   const chapterProgress = getChapterProgress(chapter.id);
   if (mode === "memorize") {
-    return chapter.lines[Math.min(chapterProgress.memorizeStage - 1, chapter.lines.length - 1)] ?? chapter.lines[0];
+    return chapter.lines[Math.min(chapterProgress.memorizeLineIndex, chapter.lines.length - 1)] ?? chapter.lines[0];
   }
   return chapter.lines.find((line) => !chapterProgress.lines[line.lineNumber].mastered) ?? null;
 }
@@ -1628,16 +1718,24 @@ function renderLinesMarkup(lines, options = {}) {
   }).join("");
 }
 
-function renderPracticeMarkup(lines, focusLine, stage) {
-  return lines.map((line) => {
-    let display = escapeHtml(line.text);
-    if (line.lineNumber === focusLine.lineNumber) {
+function renderPracticeMarkup(lines, focusLine, stage, unlockedCount = 0) {
+  return lines.map((line, index) => {
+    let display = `<span class="ghost-word blurred-line">${escapeHtml(line.text)}</span>`;
+    let extraClass = "locked-line";
+
+    if (index < unlockedCount) {
+      display = escapeHtml(line.text);
+      extraClass = "revealed-line";
+    } else if (focusLine && line.lineNumber === focusLine.lineNumber) {
+      extraClass = "target-line";
+      if (stage === 1) display = `<span class="ghost-word">${"____ ".repeat(normalizeText(line.text).split(" ").length).trim()}</span>`;
       if (stage === 2) display = keywordOnlyMarkup(line);
       if (stage === 3) display = missingWordsMarkup(line);
       if (stage === 4) display = firstLetterMarkup(line.text);
       if (stage === 5) display = `<span class="ghost-word">${"____ ".repeat(normalizeText(line.text).split(" ").length).trim()}</span>`;
     }
-    return `<p class="poem-line"><span class="line-number">${line.lineNumber}.</span> ${display}</p>`;
+
+    return `<p class="poem-line ${extraClass}"><span class="line-number">${line.lineNumber}.</span> ${display}</p>`;
   }).join("");
 }
 
@@ -1792,8 +1890,12 @@ function findClosestTargetWord(word, targetWords) {
 }
 
 function toggleSpeechRecording() {
-  if (!state.ui.speechRecognition || !state.settings.speechEnabled) {
-    setFeedback(elements.proveFeedback, "Microphone recitation is not available here, so typing is ready instead.", "warning");
+  if (!state.settings.speechEnabled || !hasMicInputSupport()) {
+    setModeFeedback("Microphone recitation is not available here, so typing is ready instead.", "warning");
+    return;
+  }
+  if (supportsWhisperRecording()) {
+    toggleWhisperRecording();
     return;
   }
   if (state.ui.isListening) {
@@ -1802,13 +1904,238 @@ function toggleSpeechRecording() {
   } else {
     state.ui.speechRecognition.start();
     state.ui.isListening = true;
-    setFeedback(elements.proveFeedback, "Listening now. Say the line clearly, then wait for the words to appear.", "neutral");
+    setModeFeedback("Listening now. Say the line clearly, then wait for the words to appear.", "neutral");
   }
   updateRecordButton();
 }
 
 function updateRecordButton() {
-  elements.recordBtn.textContent = state.ui.isListening ? "Stop microphone" : "Use microphone";
+  const memorizeLabel = state.ui.isTranscribing ? "Transcribing..." : state.ui.isListening ? "Stop recording" : "Use microphone";
+  const proveLabel = supportsWhisperRecording()
+    ? memorizeLabel
+    : state.ui.isTranscribing
+      ? "Transcribing..."
+      : state.ui.isListening
+        ? "Stop microphone"
+        : "Use microphone";
+  if (elements.memorizeRecordBtn) {
+    elements.memorizeRecordBtn.textContent = memorizeLabel;
+  }
+  if (elements.recordBtn) {
+    elements.recordBtn.textContent = proveLabel;
+  }
+}
+
+function setModeFeedback(message, tone) {
+  const target = state.ui.activeMode === "memorize" ? elements.memorizeFeedback : elements.proveFeedback;
+  setFeedback(target, message, tone);
+}
+
+function getRecordingContext() {
+  const chapter = getActiveChapter();
+  if (!chapter) return null;
+  if (state.ui.activeMode === "memorize") {
+    return {
+      mode: "memorize",
+      line: getFocusLine(chapter, "memorize"),
+      input: elements.memorizeAttemptInput,
+      feedback: elements.memorizeFeedback,
+    };
+  }
+  return {
+    mode: "prove",
+    line: getFocusLine(chapter, "prove"),
+    input: elements.proveAttemptInput,
+    feedback: elements.proveFeedback,
+  };
+}
+
+function hasMicInputSupport() {
+  return supportsWhisperRecording() || Boolean(state.ui.speechRecognition);
+}
+
+function supportsWhisperRecording() {
+  return typeof navigator !== "undefined"
+    && Boolean(navigator.mediaDevices?.getUserMedia)
+    && typeof MediaRecorder !== "undefined";
+}
+
+async function toggleWhisperRecording() {
+  if (state.ui.isTranscribing) return;
+
+  if (state.ui.isListening && state.ui.whisperRecorder) {
+    state.ui.whisperRecorder.stop();
+    state.ui.isListening = false;
+    updateRecordButton();
+    setModeFeedback("Recording stopped. Transcribing now...", "neutral");
+    return;
+  }
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const recorder = new MediaRecorder(stream);
+    state.ui.whisperChunks = [];
+    state.ui.whisperStream = stream;
+    state.ui.whisperRecorder = recorder;
+    recorder.addEventListener("dataavailable", (event) => {
+      if (event.data?.size) {
+        state.ui.whisperChunks.push(event.data);
+      }
+    });
+    recorder.addEventListener("stop", async () => {
+      const blob = new Blob(state.ui.whisperChunks, { type: recorder.mimeType || "audio/webm" });
+      cleanupWhisperRecorder();
+      await transcribeWhisperBlob(blob);
+    });
+    recorder.start();
+    startWhisperSilenceMonitor(stream, recorder);
+    state.ui.isListening = true;
+    updateRecordButton();
+    setModeFeedback("Recording now. Say the line. It will stop after about 2 seconds of silence, or you can tap again to stop.", "neutral");
+  } catch (error) {
+    console.warn("Unable to start Whisper recording.", error);
+    cleanupWhisperRecorder();
+    setModeFeedback("I couldn't start the microphone. Typing still works perfectly.", "warning");
+  }
+}
+
+function cleanupWhisperRecorder() {
+  if (state.ui.whisperSilenceFrame) {
+    cancelAnimationFrame(state.ui.whisperSilenceFrame);
+    state.ui.whisperSilenceFrame = null;
+  }
+  state.ui.whisperSourceNode?.disconnect?.();
+  state.ui.whisperAnalyser = null;
+  state.ui.whisperSourceNode = null;
+  state.ui.whisperSilenceSinceMs = 0;
+  state.ui.whisperHeardSpeech = false;
+  state.ui.whisperRecorder?.stream?.getTracks?.().forEach((track) => track.stop());
+  state.ui.whisperStream?.getTracks?.().forEach((track) => track.stop());
+  state.ui.whisperRecorder = null;
+  state.ui.whisperStream = null;
+  state.ui.whisperChunks = [];
+  state.ui.isListening = false;
+  updateRecordButton();
+}
+
+function startWhisperSilenceMonitor(stream, recorder) {
+  try {
+    const audioCtx = ensureAudioContext();
+    const source = audioCtx.createMediaStreamSource(stream);
+    const analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 2048;
+    source.connect(analyser);
+    state.ui.whisperSourceNode = source;
+    state.ui.whisperAnalyser = analyser;
+    state.ui.whisperSilenceSinceMs = 0;
+    state.ui.whisperHeardSpeech = false;
+
+    const samples = new Uint8Array(analyser.fftSize);
+    const monitor = () => {
+      if (!state.ui.whisperRecorder || state.ui.whisperRecorder !== recorder || recorder.state !== "recording") {
+        state.ui.whisperSilenceFrame = null;
+        return;
+      }
+
+      analyser.getByteTimeDomainData(samples);
+      let sum = 0;
+      for (let i = 0; i < samples.length; i += 1) {
+        const normalized = (samples[i] - 128) / 128;
+        sum += normalized * normalized;
+      }
+      const rms = Math.sqrt(sum / samples.length);
+      const now = performance.now();
+
+      if (rms > 0.03) {
+        state.ui.whisperHeardSpeech = true;
+        state.ui.whisperSilenceSinceMs = 0;
+      } else if (state.ui.whisperHeardSpeech) {
+        if (!state.ui.whisperSilenceSinceMs) {
+          state.ui.whisperSilenceSinceMs = now;
+        } else if (now - state.ui.whisperSilenceSinceMs >= 2000) {
+          recorder.stop();
+          state.ui.isListening = false;
+          updateRecordButton();
+          return;
+        }
+      }
+
+      state.ui.whisperSilenceFrame = requestAnimationFrame(monitor);
+    };
+
+    state.ui.whisperSilenceFrame = requestAnimationFrame(monitor);
+  } catch (error) {
+    console.warn("Whisper silence monitor could not start.", error);
+  }
+}
+
+async function getWhisperTranscriber() {
+  if (state.ui.whisperTranscriber) return state.ui.whisperTranscriber;
+  if (state.ui.whisperInitPromise) return state.ui.whisperInitPromise;
+
+  state.ui.whisperStatus = "loading";
+  updateRecordButton();
+  state.ui.whisperInitPromise = (async () => {
+    const { pipeline, env } = await import(TRANSFORMERS_JS_URL);
+    env.allowLocalModels = false;
+    env.useBrowserCache = true;
+    const transcriber = await pipeline("automatic-speech-recognition", WHISPER_MODEL_ID);
+    state.ui.whisperTranscriber = transcriber;
+    state.ui.whisperStatus = "ready";
+    return transcriber;
+  })().catch((error) => {
+    state.ui.whisperInitPromise = null;
+    state.ui.whisperStatus = "error";
+    throw error;
+  });
+
+  return state.ui.whisperInitPromise;
+}
+
+async function transcribeWhisperBlob(blob) {
+  const context = getRecordingContext();
+  const line = context?.line ?? null;
+  state.ui.isTranscribing = true;
+  updateRecordButton();
+  setModeFeedback("Whisper is listening to the recording now. This can take a moment the first time.", "neutral");
+
+  const objectUrl = URL.createObjectURL(blob);
+  try {
+    const transcriber = await getWhisperTranscriber();
+    const output = await transcriber(objectUrl, { chunk_length_s: 15, stride_length_s: 3 });
+    const rawTranscript = typeof output?.text === "string" ? output.text.trim() : "";
+    const bestTranscript = selectSpeechTranscript(rawTranscript ? [rawTranscript] : [], line?.text);
+    const cleanedTranscript = rawTranscript ? cleanSpeechTranscript(rawTranscript, line?.text ?? "") : "";
+    const transcript = bestTranscript || cleanedTranscript || rawTranscript;
+
+    if (!transcript) {
+      setModeFeedback("Whisper heard audio, but the line didn't come through clearly enough yet. Try again, or type it instead.", "warning");
+      return;
+    }
+
+    if (context?.input) {
+      context.input.value = transcript;
+    }
+    if (line) {
+      const preview = evaluateAttempt(transcript, line.text, state.settings.strictnessLevel);
+      const tone = preview.outcome === "pass" ? "positive" : preview.outcome === "close" ? "warning" : "neutral";
+      const message = preview.outcome === "pass"
+        ? "Whisper caught a strong match for the poem line. Press Check recitation to lock it in."
+        : preview.outcome === "close"
+          ? "Whisper heard most of the line. Press Check recitation, or tidy the wording first."
+          : "Whisper caught part of it, but typing may still be faster for this one.";
+      setModeFeedback(message, tone);
+    } else {
+      setModeFeedback("Whisper heard your recitation. Press Check recitation when you're ready.", "neutral");
+    }
+  } catch (error) {
+    console.warn("Whisper transcription failed.", error);
+    setModeFeedback("Whisper could not finish the transcription on this try. Typing still works, and you can try the microphone again.", "warning");
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+    state.ui.isTranscribing = false;
+    updateRecordButton();
+  }
 }
 
 async function toggleAmbient() {
@@ -2481,13 +2808,24 @@ async function speakLines(lines) {
   const text = lines.map((line) => line.text).join(" ");
   stopSpeechPlayback();
 
-  if (shouldUseHeadTTS()) {
+  if (shouldUseMurf()) {
     try {
-      await speakLinesWithHeadTTS(text);
+      await speakLinesWithMurf(text);
       return;
     } catch (error) {
-      console.warn("HeadTTS failed, falling back to browser speech.", error);
-      state.ui.headttsStatus = "error";
+      console.warn("Murf failed, falling back to browser speech.", error);
+      state.ui.murfStatus = "error";
+      renderSpeechSupport();
+    }
+  }
+
+  if (shouldUseKokoro()) {
+    try {
+      await speakLinesWithKokoro(text);
+      return;
+    } catch (error) {
+      console.warn("Kokoro failed, falling back to browser speech.", error);
+      state.ui.kokoroStatus = "error";
       renderSpeechSupport();
     }
   }
@@ -2500,8 +2838,8 @@ function getPreferredVoice() {
   if (!voices.length) return null;
 
   if (state.settings.preferredVoiceURI
-    && !["auto", "browser:auto"].includes(state.settings.preferredVoiceURI)
-    && !state.settings.preferredVoiceURI.startsWith("headtts:")) {
+    && !["auto", "browser:auto", "murf:charles"].includes(state.settings.preferredVoiceURI)
+    && !state.settings.preferredVoiceURI.startsWith("kokoro:")) {
     return voices.find((voice) => voice.voiceURI === state.settings.preferredVoiceURI) ?? null;
   }
 
@@ -2527,26 +2865,41 @@ function getPreferredVoice() {
   return englishVoices[0] ?? voices[0] ?? null;
 }
 
-function shouldUseHeadTTS() {
-  const preference = state.settings?.preferredVoiceURI ?? "browser:auto";
-  return supportsHeadTTS() && preference.startsWith("headtts:");
+function shouldUseMurf() {
+  const preference = state.settings?.preferredVoiceURI ?? "murf:charles";
+  return preference === "murf:charles";
 }
 
-function getPreferredHeadTTSVoiceId() {
-  const preference = state.settings?.preferredVoiceURI ?? "browser:auto";
-  return preference.startsWith("headtts:") ? preference.slice("headtts:".length) : "af_bella";
+function shouldUseKokoro() {
+  const preference = state.settings?.preferredVoiceURI ?? "murf:charles";
+  return preference === "auto" || preference.startsWith("kokoro:");
 }
 
-function getHeadTTSVoiceLabel(voiceId) {
-  return HEADTTS_VOICE_LABELS[voiceId] ?? voiceId;
+function getPreferredKokoroVoiceId() {
+  const preference = state.settings?.preferredVoiceURI ?? "auto";
+  return preference.startsWith("kokoro:") ? preference.slice("kokoro:".length) : "af_bella";
+}
+
+function getKokoroVoiceLabel(voiceId) {
+  return KOKORO_VOICE_LABELS[voiceId] ?? voiceId;
 }
 
 function getSpeechVoiceStatusLabel() {
-  if (shouldUseHeadTTS()) {
-    const label = `Neural voice: ${getHeadTTSVoiceLabel(getPreferredHeadTTSVoiceId())}`;
-    if (state.ui.headttsStatus === "ready") return label;
-    if (state.ui.headttsStatus === "loading") return `${label} (loading)`;
-    if (state.ui.headttsStatus === "error") {
+  if (shouldUseMurf()) {
+    if (state.ui.murfStatus === "ready") return "Murf voice: Charles";
+    if (state.ui.murfStatus === "loading") return "Murf voice: Charles (loading)";
+    if (state.ui.murfStatus === "error") {
+      const browserVoice = getPreferredVoice();
+      return `Murf voice: Charles (fallback: ${browserVoice?.name ?? "browser voice"})`;
+    }
+    return "Murf voice: Charles (stand by)";
+  }
+
+  if (shouldUseKokoro()) {
+    const label = `Neural voice: ${getKokoroVoiceLabel(getPreferredKokoroVoiceId())}`;
+    if (state.ui.kokoroStatus === "ready") return label;
+    if (state.ui.kokoroStatus === "loading") return `${label} (loading)`;
+    if (state.ui.kokoroStatus === "error") {
       const browserVoice = getPreferredVoice();
       return `${label} (fallback: ${browserVoice?.name ?? "browser voice"})`;
     }
@@ -2555,10 +2908,6 @@ function getSpeechVoiceStatusLabel() {
 
   const browserVoice = getPreferredVoice();
   return browserVoice ? `Browser voice: ${browserVoice.name}` : "Browser voice loading";
-}
-
-function supportsHeadTTS() {
-  return typeof navigator !== "undefined" && Boolean(navigator.gpu);
 }
 
 function stopSpeechPlayback() {
@@ -2573,56 +2922,81 @@ function stopSpeechPlayback() {
   }
 }
 
+async function speakLinesWithMurf(text) {
+  state.ui.murfStatus = "loading";
+  renderSpeechSupport();
+  const response = await fetch(MURF_WORKER_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      text,
+      voiceId: MURF_DEFAULT_VOICE.voiceId,
+      style: MURF_DEFAULT_VOICE.style,
+      model: MURF_DEFAULT_VOICE.model,
+      locale: MURF_DEFAULT_VOICE.locale,
+    }),
+  });
+
+  const data = await response.json().catch(() => ({}));
+  const audioUrl = data?.audioFile ?? data?.murf?.audioFile ?? null;
+  if (!response.ok || !audioUrl) {
+    throw new Error(data?.murf?.error_message ?? data?.error ?? "Murf did not return an audio file.");
+  }
+
+  state.ui.neuralAudio = new Audio(audioUrl);
+  state.ui.murfStatus = "ready";
+  renderSpeechSupport();
+  await state.ui.neuralAudio.play();
+}
+
 function warmHeadTTS() {
-  if (!state.settings?.speechEnabled || !shouldUseHeadTTS()) return;
-  getHeadTTS().catch((error) => {
-    console.warn("HeadTTS warmup failed.", error);
+  if (!state.settings?.speechEnabled || !shouldUseKokoro()) return;
+  getKokoroTTS().catch((error) => {
+    console.warn("Kokoro warmup failed.", error);
   });
 }
 
-async function getHeadTTS() {
-  if (state.ui.headtts) return state.ui.headtts;
-  if (state.ui.headttsInitPromise) return state.ui.headttsInitPromise;
+async function getKokoroTTS() {
+  if (state.ui.kokoroTts) return state.ui.kokoroTts;
+  if (state.ui.kokoroInitPromise) return state.ui.kokoroInitPromise;
 
-  state.ui.headttsStatus = "loading";
+  state.ui.kokoroStatus = "loading";
   renderSpeechSupport();
-  state.ui.headttsInitPromise = (async () => {
-    const { HeadTTS } = await import(HEADTTS_MODULE_URL);
-    const headtts = new HeadTTS({
-      endpoints: ["webgpu"],
-      languages: ["en-us"],
-      voices: Object.keys(HEADTTS_VOICE_LABELS),
-      workerModule: HEADTTS_WORKER_URL,
-      dictionaryURL: HEADTTS_DICTIONARY_URL,
-      audioCtx: state.ui.audioContext,
+  state.ui.kokoroInitPromise = (async () => {
+    const { KokoroTTS } = await import(KOKORO_JS_URL);
+    const kokoro = await KokoroTTS.from_pretrained(KOKORO_MODEL_ID, {
+      dtype: "q8",
+      device: typeof navigator !== "undefined" && navigator.gpu ? "webgpu" : "wasm",
     });
-    await headtts.connect();
-    state.ui.headtts = headtts;
-    state.ui.headttsStatus = "ready";
+    state.ui.kokoroTts = kokoro;
+    state.ui.kokoroStatus = "ready";
     renderSpeechSupport();
-    return headtts;
+    return kokoro;
   })().catch((error) => {
-    state.ui.headttsInitPromise = null;
-    state.ui.headttsStatus = "error";
+    state.ui.kokoroInitPromise = null;
+    state.ui.kokoroStatus = "error";
     renderSpeechSupport();
     throw error;
   });
 
-  return state.ui.headttsInitPromise;
+  return state.ui.kokoroInitPromise;
 }
 
-async function speakLinesWithHeadTTS(text) {
-  const headtts = await getHeadTTS();
-  await headtts.setup({
-    voice: getPreferredHeadTTSVoiceId(),
-    language: "en-us",
+async function speakLinesWithKokoro(text) {
+  const kokoro = await getKokoroTTS();
+  const generated = await kokoro.generate(text, {
+    voice: getPreferredKokoroVoiceId(),
     speed: 1,
-    audioEncoding: "wav",
   });
-  const messages = await headtts.synthesize({ input: text });
-  const audioBlob = messages.map(extractHeadTTSAudioBlob).find(Boolean);
+
+  if (generated && typeof generated.play === "function") {
+    await generated.play();
+    return;
+  }
+
+  const audioBlob = extractKokoroAudioBlob(generated);
   if (!audioBlob) {
-    throw new Error("HeadTTS returned no playable audio blob.");
+    throw new Error("Kokoro returned no playable audio output.");
   }
 
   state.ui.neuralAudioUrl = URL.createObjectURL(audioBlob);
@@ -2638,15 +3012,52 @@ async function speakLinesWithHeadTTS(text) {
   await audio.play();
 }
 
-function extractHeadTTSAudioBlob(message) {
-  const candidate = message?.data?.audio ?? message?.data?.buffer ?? message?.data?.blob ?? message?.audio ?? message?.buffer ?? message?.blob;
-  if (!candidate) return null;
-  if (candidate instanceof Blob) return candidate;
-  if (candidate instanceof ArrayBuffer) return new Blob([candidate], { type: "audio/wav" });
-  if (ArrayBuffer.isView(candidate)) {
-    return new Blob([candidate.buffer.slice(candidate.byteOffset, candidate.byteOffset + candidate.byteLength)], { type: "audio/wav" });
+function extractKokoroAudioBlob(generated) {
+  if (!generated) return null;
+  if (generated instanceof Blob) return generated;
+  if (generated.audio instanceof Blob) return generated.audio;
+  if (generated.wav instanceof Blob) return generated.wav;
+
+  const audioArray = generated.audio ?? generated.data ?? generated.samples ?? null;
+  const sampleRate = generated.sampling_rate ?? generated.sampleRate ?? 24000;
+  if (audioArray && (audioArray instanceof Float32Array || Array.isArray(audioArray))) {
+    return float32ToWavBlob(audioArray, sampleRate);
   }
   return null;
+}
+
+function float32ToWavBlob(audioArray, sampleRate) {
+  const float32 = audioArray instanceof Float32Array ? audioArray : Float32Array.from(audioArray);
+  const buffer = new ArrayBuffer(44 + float32.length * 2);
+  const view = new DataView(buffer);
+  writeWavString(view, 0, "RIFF");
+  view.setUint32(4, 36 + float32.length * 2, true);
+  writeWavString(view, 8, "WAVE");
+  writeWavString(view, 12, "fmt ");
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, 1, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * 2, true);
+  view.setUint16(32, 2, true);
+  view.setUint16(34, 16, true);
+  writeWavString(view, 36, "data");
+  view.setUint32(40, float32.length * 2, true);
+
+  let offset = 44;
+  for (let i = 0; i < float32.length; i += 1) {
+    const sample = Math.max(-1, Math.min(1, float32[i]));
+    view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7fff, true);
+    offset += 2;
+  }
+
+  return new Blob([buffer], { type: "audio/wav" });
+}
+
+function writeWavString(view, offset, value) {
+  for (let i = 0; i < value.length; i += 1) {
+    view.setUint8(offset + i, value.charCodeAt(i));
+  }
 }
 
 function speakLinesWithBrowserVoice(text) {
