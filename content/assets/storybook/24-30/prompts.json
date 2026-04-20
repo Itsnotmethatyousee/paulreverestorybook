@@ -1,0 +1,28 @@
+{
+  "range": "24-30",
+  "source": "../../storybook-page-prompts.json",
+  "styleGuide": {
+    "coreLook": "heavily voxel-inspired colonial Boston storybook, chunky block-built scenery, handcrafted digital diorama feeling, moonlit night palette, warm lantern glow, cinematic page-turn compositions, child-friendly but dramatic",
+    "globalSuffix": "heavily voxel-inspired colonial Boston storybook illustration, block-built handcrafted environment, dramatic moonlight, lantern glow, child-friendly educational adventure, cinematic composition, no copyrighted game assets, no text, no logo, no watermark"
+  },
+  "pagePrompts": [
+    {
+      "id": "24-30-page-01",
+      "title": "Through Alley and Street",
+      "lineRange": "24-26",
+      "prompt": "A lone watcher moving through narrow colonial alleys and streets at night, listening carefully, shadowed brick walls, shuttered windows, blue-black silence, stealthy page full of suspense and listening, heavily voxel-inspired colonial Boston storybook illustration, block-built handcrafted environment, dramatic moonlight, lantern glow, child-friendly educational adventure, cinematic composition, no copyrighted game assets, no text, no logo, no watermark"
+    },
+    {
+      "id": "24-30-page-02",
+      "title": "The Muster at the Barrack Door",
+      "lineRange": "26-29",
+      "prompt": "Secret view of British soldiers gathering near a barrack door at night, glint of weapons, measured steps, one hidden watcher observing from cover, strong tension and secrecy, heavily voxel-inspired colonial Boston storybook illustration, block-built handcrafted environment, dramatic moonlight, lantern glow, child-friendly educational adventure, cinematic composition, no copyrighted game assets, no text, no logo, no watermark"
+    },
+    {
+      "id": "24-30-page-03",
+      "title": "Marching to the Boats",
+      "lineRange": "29-30",
+      "prompt": "British grenadiers marching in formation toward their boats on the dark shore, rhythmic footsteps, block-built weapons and uniforms, the watcher hidden in the edge of the composition, a strong page of military movement and growing urgency, heavily voxel-inspired colonial Boston storybook illustration, block-built handcrafted environment, dramatic moonlight, lantern glow, child-friendly educational adventure, cinematic composition, no copyrighted game assets, no text, no logo, no watermark"
+    }
+  ]
+}

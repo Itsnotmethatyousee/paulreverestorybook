@@ -1,0 +1,34 @@
+{
+  "range": "15-23",
+  "source": "../../storybook-page-prompts.json",
+  "styleGuide": {
+    "coreLook": "heavily voxel-inspired colonial Boston storybook, chunky block-built scenery, handcrafted digital diorama feeling, moonlit night palette, warm lantern glow, cinematic page-turn compositions, child-friendly but dramatic",
+    "globalSuffix": "heavily voxel-inspired colonial Boston storybook illustration, block-built handcrafted environment, dramatic moonlight, lantern glow, child-friendly educational adventure, cinematic composition, no copyrighted game assets, no text, no logo, no watermark"
+  },
+  "pagePrompts": [
+    {
+      "id": "15-23-page-01",
+      "title": "Good Night and the Muffled Oar",
+      "lineRange": "15-17",
+      "prompt": "Small rowboat cutting silently across moonlit water at night, muffled oar, one brave figure rowing toward the Charlestown shore, calm surface reflections, the moon just rising, intimate and secretive page-turn mood, heavily voxel-inspired colonial Boston storybook illustration, block-built handcrafted environment, dramatic moonlight, lantern glow, child-friendly educational adventure, cinematic composition, no copyrighted game assets, no text, no logo, no watermark"
+    },
+    {
+      "id": "15-23-page-02",
+      "title": "Moon Over the Bay",
+      "lineRange": "17-18",
+      "prompt": "Wide moonrise over Boston Harbor, bright moon climbing above dark water, colonial shoreline and docks below, the rowboat tiny against the huge scene, a cinematic widening of scale from the previous page, heavily voxel-inspired colonial Boston storybook illustration, block-built handcrafted environment, dramatic moonlight, lantern glow, child-friendly educational adventure, cinematic composition, no copyrighted game assets, no text, no logo, no watermark"
+    },
+    {
+      "id": "15-23-page-03",
+      "title": "The Somerset at Anchor",
+      "lineRange": "19-21",
+      "prompt": "The Somerset warship looming at anchor under moonlight, tall masts and spars crossing the moon like bars, dark and imposing but readable for children, water reflections, dramatic harbor suspense, heavily voxel-inspired colonial Boston storybook illustration, block-built handcrafted environment, dramatic moonlight, lantern glow, child-friendly educational adventure, cinematic composition, no copyrighted game assets, no text, no logo, no watermark"
+    },
+    {
+      "id": "15-23-page-04",
+      "title": "A Huge Black Hulk in the Tide",
+      "lineRange": "21-23",
+      "prompt": "Close atmospheric storybook page of the black British ship and its shadowy reflection magnified in the tide, moonlight broken by ripples, heavy sense of danger and imprisonment, richly moody harbor composition, heavily voxel-inspired colonial Boston storybook illustration, block-built handcrafted environment, dramatic moonlight, lantern glow, child-friendly educational adventure, cinematic composition, no copyrighted game assets, no text, no logo, no watermark"
+    }
+  ]
+}

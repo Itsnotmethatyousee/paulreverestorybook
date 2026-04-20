@@ -1,0 +1,34 @@
+{
+  "range": "31-41",
+  "source": "../../storybook-page-prompts.json",
+  "styleGuide": {
+    "coreLook": "heavily voxel-inspired colonial Boston storybook, chunky block-built scenery, handcrafted digital diorama feeling, moonlit night palette, warm lantern glow, cinematic page-turn compositions, child-friendly but dramatic",
+    "globalSuffix": "heavily voxel-inspired colonial Boston storybook illustration, block-built handcrafted environment, dramatic moonlight, lantern glow, child-friendly educational adventure, cinematic composition, no copyrighted game assets, no text, no logo, no watermark"
+  },
+  "pagePrompts": [
+    {
+      "id": "31-41-page-01",
+      "title": "Climbing the Old North Tower",
+      "lineRange": "31-33",
+      "prompt": "Vertical interior page of the Old North Church tower, a brave friend climbing wooden stairs with stealthy careful steps, bell ropes and beams above, moonlight from high window slits, strong sense of height and secrecy, heavily voxel-inspired colonial Boston storybook illustration, block-built handcrafted environment, dramatic moonlight, lantern glow, child-friendly educational adventure, cinematic composition, no copyrighted game assets, no text, no logo, no watermark"
+    },
+    {
+      "id": "31-41-page-02",
+      "title": "Pigeons in the Belfry",
+      "lineRange": "34-37",
+      "prompt": "Inside the belfry chamber overhead, startled pigeons burst upward from somber rafters as the climber enters, wooden beams, dusty air, moonlight shafts, cinematic page-turn that makes the tower feel alive, heavily voxel-inspired colonial Boston storybook illustration, block-built handcrafted environment, dramatic moonlight, lantern glow, child-friendly educational adventure, cinematic composition, no copyrighted game assets, no text, no logo, no watermark"
+    },
+    {
+      "id": "31-41-page-03",
+      "title": "The Shapes in the Belfry",
+      "lineRange": "37-39",
+      "prompt": "Moody close page in the belfry-chamber with shadows of ropes, rafters, ladder rails, and small objects hanging in the dimness, moonlight touching only part of the room, suspenseful but child-safe, richly atmospheric, heavily voxel-inspired colonial Boston storybook illustration, block-built handcrafted environment, dramatic moonlight, lantern glow, child-friendly educational adventure, cinematic composition, no copyrighted game assets, no text, no logo, no watermark"
+    },
+    {
+      "id": "31-41-page-04",
+      "title": "Above the City and the Sea",
+      "lineRange": "40-41",
+      "prompt": "The watcher high in the tower looking out over Boston and the sea, rooftops and harbor beyond, the city far below, this should feel like the last breath before the churchyard scene begins, heavily voxel-inspired colonial Boston storybook illustration, block-built handcrafted environment, dramatic moonlight, lantern glow, child-friendly educational adventure, cinematic composition, no copyrighted game assets, no text, no logo, no watermark"
+    }
+  ]
+}

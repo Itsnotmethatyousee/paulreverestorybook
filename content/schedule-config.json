@@ -1,0 +1,111 @@
+{
+  "defaultProgressionMode": "manual",
+  "manualActiveSectionId": "churchyard-watch",
+  "scheduleTimezone": {
+    "timeZoneId": "America/Phoenix",
+    "label": "Phoenix, AZ",
+    "utcOffset": "-07:00",
+    "timeApiUrl": "https://worldtimeapi.org/api/timezone/America/Phoenix"
+  },
+  "storybookIntro": {
+    "title": "Why This Poem Matters",
+    "hook": "This is not only a poem to memorize. It is a story about how one warning, carried through the night, helped people get ready for a turning point in American history.",
+    "significance": "Paul Revere's Ride helps kids picture urgency, courage, signal-sending, and how ordinary people spread important news before there were phones, radios, or the internet.",
+    "whatToNotice": [
+      "Longfellow uses spooky nighttime images so the warning feels important and dramatic.",
+      "The poem moves like a ride: quiet watching first, then sparks, signals, motion, and alarm.",
+      "The rhythm and rhyme make it easier to remember, almost like footsteps and hoofbeats."
+    ],
+    "journeyPrompt": "First, understand the night. Then walk through it. Then say the words like they matter."
+  },
+  "worldPositions": [
+    { "x": 8, "y": 62 },
+    { "x": 23, "y": 56 },
+    { "x": 39, "y": 48 },
+    { "x": 54, "y": 43 },
+    { "x": 71, "y": 34 },
+    { "x": 84, "y": 28 },
+    { "x": 89, "y": 48 }
+  ],
+  "strictnessLevels": {
+    "easy": {
+      "label": "Easy",
+      "passThreshold": 0.74,
+      "closeThreshold": 0.58,
+      "allowedContentMisses": 2
+    },
+    "standard": {
+      "label": "Standard",
+      "passThreshold": 0.82,
+      "closeThreshold": 0.67,
+      "allowedContentMisses": 1
+    },
+    "challenge": {
+      "label": "Challenge",
+      "passThreshold": 0.9,
+      "closeThreshold": 0.75,
+      "allowedContentMisses": 0
+    }
+  },
+  "finalRecital": {
+    "date": "2026-05-11",
+    "label": "Final class recital",
+    "message": "the full poem in front of the class"
+  },
+  "sections": [
+    {
+      "id": "opening-call",
+      "title": "Chapter 1",
+      "description": "Lines 1-23 of the poem.",
+      "lineStart": 1,
+      "lineEnd": 23,
+      "unlockDate": "2026-04-03",
+      "checkpointSize": 4
+    },
+    {
+      "id": "gathering-night",
+      "title": "Chapter 2",
+      "description": "Lines 24-41 of the poem.",
+      "lineStart": 24,
+      "lineEnd": 41,
+      "unlockDate": "2026-04-10",
+      "checkpointSize": 4
+    },
+    {
+      "id": "churchyard-watch",
+      "title": "Chapter 3",
+      "description": "Lines 42-65 of the poem.",
+      "lineStart": 42,
+      "lineEnd": 65,
+      "unlockDate": "2026-04-17",
+      "checkpointSize": 4
+    },
+    {
+      "id": "lantern-flare",
+      "title": "Chapter 4",
+      "description": "Lines 66-86 of the poem.",
+      "lineStart": 66,
+      "lineEnd": 86,
+      "unlockDate": "2026-04-24",
+      "checkpointSize": 3
+    },
+    {
+      "id": "midnight-ride",
+      "title": "Chapter 5",
+      "description": "Lines 87-110 of the poem.",
+      "lineStart": 87,
+      "lineEnd": 110,
+      "unlockDate": "2026-04-30",
+      "checkpointSize": 4
+    },
+    {
+      "id": "echo-forevermore",
+      "title": "Chapter 6",
+      "description": "Lines 111-130 of the poem.",
+      "lineStart": 111,
+      "lineEnd": 130,
+      "unlockDate": "2026-05-08",
+      "checkpointSize": 3
+    }
+  ]
+}

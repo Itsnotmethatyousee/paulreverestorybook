@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lantern Quest Storybook</title>
+  <meta name="description" content="An interactive storybook and memorization journey for Paul Revere's Ride.">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="hero-panel">
+      <section class="hero-copy">
+        <p class="eyebrow">Lantern Quest Storybook</p>
+        <h1>Learn why the warning mattered.</h1>
+        <p class="hero-text">
+          Walk through the poem as a story first, feel its rhythm, then memorize the lines like they mean something.
+        </p>
+        <div class="hero-actions">
+          <button id="speakLinesBtn" class="primary-button">Read this scene aloud</button>
+          <button id="cadenceToggleBtn" class="secondary-button" aria-pressed="false">Cadence off</button>
+          <button id="ambientToggleBtn" class="secondary-button" aria-pressed="false">Ambient off</button>
+        </div>
+
+        <section class="preface-card">
+          <p class="panel-kicker">Preface</p>
+          <h2 id="prefaceTitle">Why this poem matters</h2>
+          <p id="prefaceHook" class="hero-text"></p>
+          <p id="prefaceSignificance" class="hero-text"></p>
+          <ul id="prefaceNoticeList" class="preface-list"></ul>
+          <p id="prefaceJourneyPrompt" class="preface-journey"></p>
+        </section>
+      </section>
+
+      <aside class="status-card">
+        <h2>Tonight's Goal</h2>
+        <p id="activeSectionLabel" class="status-title">Loading section...</p>
+        <p id="activeSectionDates" class="status-copy"></p>
+
+        <div id="deadlineBanner" class="deadline-banner">
+          <p class="deadline-label">Schedule alarm</p>
+          <p id="deadlineMessage" class="deadline-message">Checking the next due date...</p>
+          <p id="clockMessage" class="clock-message"></p>
+        </div>
+
+        <div class="meter-wrap">
+          <label for="sectionProgressBar">Storybook chapter progress</label>
+          <progress id="sectionProgressBar" max="100" value="0"></progress>
+          <span id="sectionProgressText">0% complete</span>
+        </div>
+
+        <div class="meter-wrap">
+          <label for="masteryProgressBar">Line mastery</label>
+          <progress id="masteryProgressBar" max="100" value="0"></progress>
+          <span id="masteryProgressText">0 of 0 lines mastered</span>
+        </div>
+
+        <section class="cadence-panel">
+          <p class="deadline-label">Cadence Helper</p>
+          <p id="cadenceMessage" class="status-copy">4-beat pulse ready for the poem's hoofbeat rhythm.</p>
+          <div id="beatDots" class="beat-dots" aria-label="Poem cadence beats">
+            <span class="beat-dot"></span>
+            <span class="beat-dot"></span>
+            <span class="beat-dot"></span>
+            <span class="beat-dot"></span>
+          </div>
+        </section>
+      </aside>
+    </header>
+
+    <main class="main-grid">
+      <section class="panel story-panel">
+        <div class="panel-header">
+          <div>
+            <p class="panel-kicker">Interactive Storybook</p>
+            <h2 id="chapterTitle">Loading chapter...</h2>
+          </div>
+          <div class="mode-tabs" role="tablist" aria-label="Main modes">
+            <button class="tab-button active" data-mode="story" role="tab" aria-selected="true">Storybook</button>
+            <button class="tab-button" data-mode="memorize" role="tab" aria-selected="false">Memorize</button>
+            <button class="tab-button" data-mode="prove" role="tab" aria-selected="false">Prove-It</button>
+          </div>
+        </div>
+
+        <article id="storyPanel" class="mode-panel active-panel">
+          <div class="story-stage">
+            <img id="storyImage" class="story-image" alt="Storybook scene illustration for the current poem chapter">
+            <canvas id="storyCanvas" class="story-canvas" aria-hidden="true"></canvas>
+            <div class="story-scene-overlay">
+              <div class="scene-plaque">
+                <p class="panel-kicker">Story Spread</p>
+                <h3 id="sceneLocation">Old North Churchyard</h3>
+                <p id="scenePrompt" class="scene-prompt">Step into the poem and notice what the night is doing.</p>
+              </div>
+              <div class="scene-beat-card">
+                <p class="panel-kicker">Big Moment</p>
+                <p id="sceneMomentTitle" class="scene-moment-title">The night is holding its breath.</p>
+                <p id="sceneMomentCopy" class="scene-moment-copy">Click the glowing story markers to reveal what this part of the poem wants your child to feel.</p>
+              </div>
+            </div>
+            <div id="storyObjects" class="story-objects"></div>
+            <div class="scene-caption-bar">
+              <span id="chapterBadge" class="scene-tag">Chapter</span>
+              <span id="chapterLineRange" class="line-range">Lines</span>
+              <span id="speechSupportPill" class="pill">Checking speech...</span>
+            </div>
+          </div>
+
+          <div class="chapter-copy">
+            <div class="scene-poem-panel">
+              <p class="panel-kicker">Read Along</p>
+              <div id="scenePoemText" class="scene-poem-text"></div>
+            </div>
+            <div class="story-copy-grid">
+              <div class="narration-card">
+                <p class="panel-kicker">Narrator</p>
+                <p id="chapterNarration" class="chapter-narration"></p>
+              </div>
+              <div class="meaning-card">
+                <p class="panel-kicker">Why it matters</p>
+                <p id="chapterMeaning" class="mode-instruction"></p>
+              </div>
+            </div>
+            <div class="quest-panel">
+              <div class="quest-header">
+                <div>
+                  <p class="panel-kicker">Scene Goal</p>
+                  <h3 id="questTitle">Loading scene goal...</h3>
+                </div>
+                <span id="questStatus" class="quest-status">Not started</span>
+              </div>
+              <p id="questInstruction" class="mode-instruction"></p>
+              <div id="questActionRow" class="action-row"></div>
+              <div id="questFeedback" class="feedback-box neutral">Complete the scene action to turn the page.</div>
+            </div>
+
+            <div id="storyText" class="poem-card"></div>
+            <div class="keyword-box">
+              <strong>Power words</strong>
+              <div id="storyKeywords" class="keyword-row"></div>
+            </div>
+            <details class="explanation-box" open>
+              <summary>Kid-friendly explanation</summary>
+              <p id="storyExplanation"></p>
+            </details>
+            <div id="storyFeedback" class="feedback-box neutral">Begin the journey by completing the scene action.</div>
+          </div>
+
+          <div class="chapter-nav">
+            <button id="prevChapterBtn" class="secondary-button">Previous chapter</button>
+            <button id="nextChapterBtn" class="primary-button">Next chapter</button>
+          </div>
+        </article>
+
+        <article id="memorizePanel" class="mode-panel" hidden>
+          <div class="story-topline">
+            <span id="memorizeStageBadge" class="scene-tag">Stage 1</span>
+            <span id="memorizeLineRange" class="line-range">Lines</span>
+          </div>
+          <h3 id="memorizeCheckpointTitle"></h3>
+          <p id="memorizeInstruction" class="mode-instruction"></p>
+          <div id="memorizePrompt" class="poem-card practice-card"></div>
+          <label class="input-label" for="memorizeAttemptInput">Type the focus line</label>
+          <textarea id="memorizeAttemptInput" rows="3" placeholder="Type the line you remember..."></textarea>
+          <div class="action-row">
+            <button id="memorizeHintBtn" class="secondary-button">Show hint</button>
+            <button id="memorizeListenBtn" class="secondary-button">Listen again</button>
+            <button id="memorizeCheckBtn" class="primary-button">Complete stage</button>
+          </div>
+          <div id="memorizeHintBox" class="hint-box" hidden></div>
+          <div id="memorizeFeedback" class="feedback-box neutral">Complete the story scene first, then practice the words.</div>
+        </article>
+
+        <article id="provePanel" class="mode-panel" hidden>
+          <div class="story-topline">
+            <span id="proveModeBadge" class="scene-tag">Recital Gate</span>
+            <span id="proveLineRange" class="line-range">Line</span>
+          </div>
+          <h3 id="proveCheckpointTitle"></h3>
+          <p id="proveInstruction" class="mode-instruction"></p>
+          <div class="target-card">
+            <p class="target-label">Current line cue</p>
+            <p id="proveTargetCue" class="target-cue"></p>
+          </div>
+          <label class="input-label" for="proveAttemptInput">Say or type the line</label>
+          <textarea id="proveAttemptInput" rows="3" placeholder="Say or type the line..."></textarea>
+          <div class="action-row">
+            <button id="recordBtn" class="secondary-button">Use microphone</button>
+            <button id="proveHintBtn" class="secondary-button">Need a hint?</button>
+            <button id="proveCheckBtn" class="primary-button">Check recitation</button>
+          </div>
+          <div id="proveHintBox" class="hint-box" hidden></div>
+          <div id="proveFeedback" class="feedback-box neutral">When the chapter feels real, say the line like you mean it.</div>
+          <div id="proveDiff" class="diff-box" hidden></div>
+        </article>
+      </section>
+
+      <aside class="side-column">
+        <section class="panel">
+          <div class="panel-header compact">
+            <div>
+              <p class="panel-kicker">Journey Map</p>
+              <h2>Scene Path</h2>
+            </div>
+          </div>
+          <ol id="chapterList" class="checkpoint-list"></ol>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header compact">
+            <div>
+              <p class="panel-kicker">Parent Controls</p>
+              <h2>Settings Cabin</h2>
+            </div>
+          </div>
+          <div class="settings-panel">
+            <label class="toggle-row">
+              <span>Automatic date progression</span>
+              <input id="autoModeToggle" type="checkbox">
+            </label>
+
+            <label class="stacked-label" for="sectionSelect">
+              <span>Manual active section</span>
+              <select id="sectionSelect"></select>
+            </label>
+
+            <label class="toggle-row">
+              <span>Show kid-friendly explanations</span>
+              <input id="explanationsToggle" type="checkbox">
+            </label>
+
+            <label class="toggle-row">
+              <span>Enable speech features</span>
+              <input id="speechToggle" type="checkbox">
+            </label>
+
+            <label class="stacked-label" for="strictnessSelect">
+              <span>Recitation strictness</span>
+              <select id="strictnessSelect"></select>
+            </label>
+
+            <label class="stacked-label" for="voiceSelect">
+              <span>Read-aloud voice</span>
+              <select id="voiceSelect"></select>
+            </label>
+
+            <div class="action-grid">
+              <button id="exportProgressBtn" class="secondary-button">Export progress</button>
+              <label class="secondary-button file-button">
+                Import progress
+                <input id="importProgressInput" type="file" accept="application/json">
+              </label>
+            </div>
+
+            <button id="resetProgressBtn" class="danger-button">Reset saved progress</button>
+            <p class="settings-note">
+              Weekly edits live in <code>content/poem-data.json</code> and <code>content/schedule-config.json</code>.
+            </p>
+          </div>
+        </section>
+      </aside>
+    </main>
+  </div>
+
+  <template id="chapterItemTemplate">
+    <li class="checkpoint-item">
+      <button class="checkpoint-button" type="button">
+        <span class="checkpoint-status"></span>
+        <span class="checkpoint-copy">
+          <strong class="checkpoint-name"></strong>
+          <span class="checkpoint-lines"></span>
+        </span>
+      </button>
+    </li>
+  </template>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

@@ -1,0 +1,34 @@
+{
+  "range": "01-14",
+  "source": "../../storybook-page-prompts.json",
+  "styleGuide": {
+    "coreLook": "heavily voxel-inspired colonial Boston storybook, chunky block-built scenery, handcrafted digital diorama feeling, moonlit night palette, warm lantern glow, cinematic page-turn compositions, child-friendly but dramatic",
+    "globalSuffix": "heavily voxel-inspired colonial Boston storybook illustration, block-built handcrafted environment, dramatic moonlight, lantern glow, child-friendly educational adventure, cinematic composition, no copyrighted game assets, no text, no logo, no watermark"
+  },
+  "pagePrompts": [
+    {
+      "id": "01-14-page-01",
+      "title": "Listen, My Children",
+      "lineRange": "1-5",
+      "prompt": "Opening storybook spread for Paul Revere's Ride, a parent-like storyteller mood over moonlit colonial Boston, rooftops, steeples, deep blue night sky, one small rider hinted in the distance, the page should feel legendary and inviting, like a child is being welcomed into an important historical tale, heavily voxel-inspired colonial Boston storybook illustration, block-built handcrafted environment, dramatic moonlight, lantern glow, child-friendly educational adventure, cinematic composition, no copyrighted game assets, no text, no logo, no watermark"
+    },
+    {
+      "id": "01-14-page-02",
+      "title": "The Secret Plan",
+      "lineRange": "6-10",
+      "prompt": "A secret nighttime meeting between Paul Revere and his friend in colonial Boston, one pointing toward the church tower while explaining the lantern signal, tense but focused expressions, lantern glow on coats and faces, rooftops and dark harbor beyond, clear sense of a plan being made, heavily voxel-inspired colonial Boston storybook illustration, block-built handcrafted environment, dramatic moonlight, lantern glow, child-friendly educational adventure, cinematic composition, no copyrighted game assets, no text, no logo, no watermark"
+    },
+    {
+      "id": "01-14-page-03",
+      "title": "One if by Land, Two if by Sea",
+      "lineRange": "8-11",
+      "prompt": "Stylized storybook page showing the Old North Church tower, a lantern signal concept, dark harbor routes by land and sea implied like branching paths through a block-built colonial world, this page should feel iconic and easy for a child to remember, heavily voxel-inspired colonial Boston storybook illustration, block-built handcrafted environment, dramatic moonlight, lantern glow, child-friendly educational adventure, cinematic composition, no copyrighted game assets, no text, no logo, no watermark"
+    },
+    {
+      "id": "01-14-page-04",
+      "title": "Ready to Spread the Alarm",
+      "lineRange": "11-14",
+      "prompt": "Paul Revere on the opposite shore in a poised ready stance, horse nearby, looking toward dark villages and farm roads stretching away into the night, the page should communicate readiness to carry warning through the countryside, heavily voxel-inspired colonial Boston storybook illustration, block-built handcrafted environment, dramatic moonlight, lantern glow, child-friendly educational adventure, cinematic composition, no copyrighted game assets, no text, no logo, no watermark"
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "range": "110-130",
+  "alignedToSchedule": true,
+  "source": "../../storybook-page-prompts.json",
+  "note": "School schedule overlaps line 110 across 87-110 and 110-130, so this pack begins with a transition page that bridges the end of Concord into the closing legacy section.",
+  "styleGuide": {
+    "coreLook": "heavily voxel-inspired colonial Boston storybook, chunky block-built scenery, handcrafted digital diorama feeling, moonlit night palette, warm lantern glow, cinematic page-turn compositions, child-friendly but dramatic",
+    "globalSuffix": "heavily voxel-inspired colonial Boston storybook illustration, block-built handcrafted environment, dramatic moonlight, lantern glow, child-friendly educational adventure, cinematic composition, no copyrighted game assets, no text, no logo, no watermark"
+  },
+  "pagePrompts": [
+    {
+      "id": "110-130-page-01",
+      "title": "From Concord Into the Legend",
+      "lineRange": "110-112",
+      "prompt": "Transition storybook page moving from the solemn end of Concord into the remembered history of the ride, dawn light over the bridge and road, one fallen cost implied respectfully in the distance, and the larger story beginning to widen into memory, heavily voxel-inspired colonial Boston storybook illustration, block-built handcrafted environment, dramatic moonlight, lantern glow, child-friendly educational adventure, cinematic composition, no copyrighted game assets, no text, no logo, no watermark"
+    },
+    {
+      "id": "111-118-page-01",
+      "title": "You Know the Rest",
+      "lineRange": "111-113",
+      "prompt": "Wide battle-story montage page at dawn, British Regulars retreating as colonial farmers resist, smoke and movement across roads and field edges, more historical mural feeling while still staying readable for children, heavily voxel-inspired colonial Boston storybook illustration, block-built handcrafted environment, dramatic moonlight, lantern glow, child-friendly educational adventure, cinematic composition, no copyrighted game assets, no text, no logo, no watermark"
+    },
+    {
+      "id": "111-118-page-02",
+      "title": "Behind Each Fence and Wall",
+      "lineRange": "113-116",
+      "prompt": "Colonial farmers firing from behind fences, stone walls, and farmyard edges as British soldiers move down a lane, clear geography, strong countryside storytelling, this page should make the land itself feel part of the resistance, heavily voxel-inspired colonial Boston storybook illustration, block-built handcrafted environment, dramatic moonlight, lantern glow, child-friendly educational adventure, cinematic composition, no copyrighted game assets, no text, no logo, no watermark"
+    },
+    {
+      "id": "111-118-page-03",
+      "title": "Pause, Fire, and Load",
+      "lineRange": "116-118",
+      "prompt": "Action page of colonial farmers crossing fields and reappearing under trees at the turn of the road, stopping only to fire and load, energetic moving composition through countryside terrain, heavily voxel-inspired colonial Boston storybook illustration, block-built handcrafted environment, dramatic moonlight, lantern glow, child-friendly educational adventure, cinematic composition, no copyrighted game assets, no text, no logo, no watermark"
+    },
+    {
+      "id": "119-130-page-01",
+      "title": "Through the Night Rode Paul Revere",
+      "lineRange": "119-122",
+      "prompt": "Mythic storybook image of Paul Revere riding through the night as his cry of alarm spreads from village to village, multiple distant windows glowing awake, the rider becoming almost legendary in silhouette, heavily voxel-inspired colonial Boston storybook illustration, block-built handcrafted environment, dramatic moonlight, lantern glow, child-friendly educational adventure, cinematic composition, no copyrighted game assets, no text, no logo, no watermark"
+    },
+    {
+      "id": "119-130-page-02",
+      "title": "A Voice in the Darkness",
+      "lineRange": "122-124",
+      "prompt": "Close emotional page of colonial homes at night as the alarm reaches them, doorways, candlelight, startled families waking, hoofbeats and a knock at the door implied through composition, this page should feel personal and human, heavily voxel-inspired colonial Boston storybook illustration, block-built handcrafted environment, dramatic moonlight, lantern glow, child-friendly educational adventure, cinematic composition, no copyrighted game assets, no text, no logo, no watermark"
+    },
+    {
+      "id": "119-130-page-03",
+      "title": "Night-Wind of the Past",
+      "lineRange": "125-127",
+      "prompt": "Poetic storybook page where the night-wind carries the memory of Paul Revere forward through time, colonial landscape blending into symbolic history, windswept road, horse silhouette, more lyrical and timeless than literal, heavily voxel-inspired colonial Boston storybook illustration, block-built handcrafted environment, dramatic moonlight, lantern glow, child-friendly educational adventure, cinematic composition, no copyrighted game assets, no text, no logo, no watermark"
+    },
+    {
+      "id": "119-130-page-04",
+      "title": "The Hurrying Hoof-Beats Forevermore",
+      "lineRange": "128-130",
+      "prompt": "Final triumphant storybook closing spread: the hurrying hoof-beats of Paul Revere's steed echo through darkness toward the viewer, villages waking across the distance, midnight road, powerful sense that the message lives on forever, iconic ending image, heavily voxel-inspired colonial Boston storybook illustration, block-built handcrafted environment, dramatic moonlight, lantern glow, child-friendly educational adventure, cinematic composition, no copyrighted game assets, no text, no logo, no watermark"
+    }
+  ]
+}

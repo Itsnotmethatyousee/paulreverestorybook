@@ -1,0 +1,140 @@
+{
+  "project": "Lantern Quest Storybook Art Prompt Pack",
+  "styleGuide": {
+    "visualDirection": "chunky voxel-inspired colonial Boston at night, block-built environments, lantern glow, moonlit harbor, cinematic storybook framing, child-friendly clarity, playful but dramatic, handcrafted digital diorama look",
+    "doUse": [
+      "voxel-inspired trees, rooftops, gravestones, boats, horses, lanterns, cobblestone streets, church towers",
+      "moonlit navy blues, fog gray, lantern gold, warm candle windows, mist over water",
+      "clear storytelling composition with one main action per image",
+      "consistent Paul Revere silhouette: tricorn hat, riding cloak, determined pose",
+      "consistent Old North / church silhouette with tall belfry and colonial details"
+    ],
+    "doNotUse": [
+      "copyrighted game logos, UI, hearts, inventory bars, creepers, branded blocks, branded fonts, exact Minecraft characters or assets",
+      "photorealism",
+      "modern city elements, cars, streetlights, electric lighting",
+      "hyper-scary horror tone"
+    ],
+    "globalSuffix": "voxel-inspired colonial Boston storybook scene, block-built environment, cinematic moonlight, dramatic lantern glow, kid-friendly educational adventure, richly detailed but readable composition, no copyrighted game assets, no text, no logo, no watermark",
+    "recommendedAspectRatio": "16:9 landscape for scene spreads",
+    "continuityNotes": [
+      "Keep Paul Revere visually recognizable across images: slim rider, tricorn hat, dark cloak, alert posture.",
+      "Keep the friend / watcher visually recognizable: colonial coat, purposeful expression, often framed against tower ladders or windows.",
+      "Preserve a single coherent world palette across the full poem."
+    ]
+  },
+  "prompts": [
+    {
+      "id": "scene-01-opening-warning",
+      "title": "The Midnight Warning Begins",
+      "lineStart": 1,
+      "lineEnd": 13,
+      "prompt": "A moonlit colonial Boston street at midnight, one rider in a tricorn hat preparing for an urgent warning mission, distant church steeple, shuttered windows, misty air, rooftops and chimneys stacked like block-built toy buildings, the whole city feels asleep but history is about to move, cinematic wide establishing shot, voxel-inspired sandbox adventure aesthetic, blocky handcrafted environment, dramatic storybook lighting. voxel-inspired colonial Boston storybook scene, block-built environment, cinematic moonlight, dramatic lantern glow, kid-friendly educational adventure, richly detailed but readable composition, no copyrighted game assets, no text, no logo, no watermark"
+    },
+    {
+      "id": "scene-02-friend-in-the-steeple",
+      "title": "The Friend Waits in the Tower",
+      "lineStart": 14,
+      "lineEnd": 27,
+      "prompt": "Inside a colonial church tower high above Boston, a brave friend climbs a wooden ladder toward the belfry, moonlight slicing through narrow tower windows, blocky beams, ropes, bell hardware, steep vertical composition that makes the climb feel suspenseful, child-friendly but dramatic, voxel-inspired handcrafted tower interior. voxel-inspired colonial Boston storybook scene, block-built environment, cinematic moonlight, dramatic lantern glow, kid-friendly educational adventure, richly detailed but readable composition, no copyrighted game assets, no text, no logo, no watermark"
+    },
+    {
+      "id": "scene-03-belfry-window-watch",
+      "title": "Watching from the Belfry Window",
+      "lineStart": 28,
+      "lineEnd": 41,
+      "prompt": "View from a church belfry window over sleeping Boston and the harbor at night, the watcher silhouetted against moonlight, rooftops, narrow streets, harbor water, the sense of secret waiting before a signal, stylized voxel cityscape with atmospheric depth and storybook framing. voxel-inspired colonial Boston storybook scene, block-built environment, cinematic moonlight, dramatic lantern glow, kid-friendly educational adventure, richly detailed but readable composition, no copyrighted game assets, no text, no logo, no watermark"
+    },
+    {
+      "id": "scene-04-churchyard-hush",
+      "title": "Beneath, in the Churchyard, Lay the Dead",
+      "lineStart": 42,
+      "lineEnd": 46,
+      "prompt": "A still colonial churchyard beneath a tall church tower, blocky gravestones under silver moonlight, silent trees, soft mist, the scene feels hushed and respectful rather than scary, the watcher high above can see the graves below, dramatic composition showing quiet before action, voxel-inspired nighttime graveyard. voxel-inspired colonial Boston storybook scene, block-built environment, cinematic moonlight, dramatic lantern glow, kid-friendly educational adventure, richly detailed but readable composition, no copyrighted game assets, no text, no logo, no watermark"
+    },
+    {
+      "id": "scene-05-whispering-wind",
+      "title": "The Wind Goes Creeping Along",
+      "lineStart": 47,
+      "lineEnd": 51,
+      "prompt": "The same churchyard at night, but now the wind is visualized as sweeping ribbons of pale mist moving between the gravestones like a secret messenger, trees bending slightly, tension rising, the whole yard feels alive with suspense, blocky stylized animation-ready composition, voxel-inspired poetic atmosphere. voxel-inspired colonial Boston storybook scene, block-built environment, cinematic moonlight, dramatic lantern glow, kid-friendly educational adventure, richly detailed but readable composition, no copyrighted game assets, no text, no logo, no watermark"
+    },
+    {
+      "id": "scene-06-bridge-of-boats",
+      "title": "A Line of Black Across the Tide",
+      "lineStart": 52,
+      "lineEnd": 56,
+      "prompt": "Wide dramatic harbor scene under a rising moon, dark British boats stretched across the water like a bridge, glimmering tide, rooftops and a church silhouette in the distance, the danger becomes visible and real, cinematic panoramic view, block-built harbor geometry, voxel-inspired colonial suspense scene. voxel-inspired colonial Boston storybook scene, block-built environment, cinematic moonlight, dramatic lantern glow, kid-friendly educational adventure, richly detailed but readable composition, no copyrighted game assets, no text, no logo, no watermark"
+    },
+    {
+      "id": "scene-07-paul-and-horse",
+      "title": "Paul Revere Waits on the Other Shore",
+      "lineStart": 57,
+      "lineEnd": 65,
+      "prompt": "Paul Revere stands beside a sturdy horse on the Charlestown shore at night, one hand on the saddle, looking toward the distant church tower across dark water, tense waiting posture, blocky horse and fence rails, moonlit shoreline grass, storytelling composition about readiness and patience, voxel-inspired colonial adventure illustration. voxel-inspired colonial Boston storybook scene, block-built environment, cinematic moonlight, dramatic lantern glow, kid-friendly educational adventure, richly detailed but readable composition, no copyrighted game assets, no text, no logo, no watermark"
+    },
+    {
+      "id": "scene-08-climbing-the-belfry",
+      "title": "The Friend Moves Up the Tower",
+      "lineStart": 66,
+      "lineEnd": 74,
+      "prompt": "A vertical action spread inside the church tower as the friend climbs higher toward the lantern spot, wooden ladder, bells, beams, open window to the moon, sense of height and urgency, cinematic upward angle, voxel-inspired colonial tower interior with strong silhouettes. voxel-inspired colonial Boston storybook scene, block-built environment, cinematic moonlight, dramatic lantern glow, kid-friendly educational adventure, richly detailed but readable composition, no copyrighted game assets, no text, no logo, no watermark"
+    },
+    {
+      "id": "scene-09-lantern-signal",
+      "title": "One if by Land, Two if by Sea",
+      "lineStart": 75,
+      "lineEnd": 86,
+      "prompt": "Historic lantern signal moment in the church belfry, glowing lantern raised against the dark tower opening, warm gold light cutting through cold moonlight, the harbor below barely visible, this should feel iconic, clear, and heroic, voxel-inspired diorama composition focused on signal and teamwork. voxel-inspired colonial Boston storybook scene, block-built environment, cinematic moonlight, dramatic lantern glow, kid-friendly educational adventure, richly detailed but readable composition, no copyrighted game assets, no text, no logo, no watermark"
+    },
+    {
+      "id": "scene-10-launch-of-the-ride",
+      "title": "The Spark Strikes Out",
+      "lineStart": 87,
+      "lineEnd": 96,
+      "prompt": "Paul Revere mounts the horse and starts the midnight ride, cloak trailing, horse stepping forward into motion, distant lantern signal behind him, low-angle shot that feels exciting and purposeful, blocky road, fence, and moonlit ground planes, voxel-inspired action storybook spread. voxel-inspired colonial Boston storybook scene, block-built environment, cinematic moonlight, dramatic lantern glow, kid-friendly educational adventure, richly detailed but readable composition, no copyrighted game assets, no text, no logo, no watermark"
+    },
+    {
+      "id": "scene-11-medford-road",
+      "title": "Through the Sleeping Towns",
+      "lineStart": 97,
+      "lineEnd": 110,
+      "prompt": "A midnight road through a sleeping colonial town, Paul Revere galloping past shuttered houses, orchard trees, fences, moonlit dirt path, windows beginning to glow as warnings spread, strong sense of motion, voxel-inspired colonial road scene with playful but dramatic energy. voxel-inspired colonial Boston storybook scene, block-built environment, cinematic moonlight, dramatic lantern glow, kid-friendly educational adventure, richly detailed but readable composition, no copyrighted game assets, no text, no logo, no watermark"
+    },
+    {
+      "id": "scene-12-sparks-and-alarms",
+      "title": "A Cry of Defiance and Not of Fear",
+      "lineStart": 111,
+      "lineEnd": 130,
+      "prompt": "Paul Revere calling out while riding through the dark, townspeople waking in colonial windows, sparks of light and alarm spreading from house to house, the road feels alive now, clear emotional shift from quiet suspense to active warning, cinematic voxel-inspired action spread. voxel-inspired colonial Boston storybook scene, block-built environment, cinematic moonlight, dramatic lantern glow, kid-friendly educational adventure, richly detailed but readable composition, no copyrighted game assets, no text, no logo, no watermark"
+    },
+    {
+      "id": "scene-13-lexington-green",
+      "title": "The Warning Reaches Lexington",
+      "lineStart": 131,
+      "lineEnd": 146,
+      "prompt": "Colonial Lexington at the edge of dawn, riders and townspeople gathering on a village green, muskets, meetinghouse silhouette, pale sky beginning to brighten, the warning has arrived and tension is now public, block-built village layout, voxel-inspired revolutionary storybook tableau. voxel-inspired colonial Boston storybook scene, block-built environment, cinematic moonlight, dramatic lantern glow, kid-friendly educational adventure, richly detailed but readable composition, no copyrighted game assets, no text, no logo, no watermark"
+    },
+    {
+      "id": "scene-14-somerset-and-shore",
+      "title": "Back Toward the Harbor and the Somerset",
+      "lineStart": 147,
+      "lineEnd": 160,
+      "prompt": "Night harbor again with the Somerset warship looming at anchor, dark masts, moonlit rigging, faint lantern reflections in the water, blocky waves and fog, the ship should feel imposing but still readable for children, cinematic voxel-inspired harbor painting. voxel-inspired colonial Boston storybook scene, block-built environment, cinematic moonlight, dramatic lantern glow, kid-friendly educational adventure, richly detailed but readable composition, no copyrighted game assets, no text, no logo, no watermark"
+    },
+    {
+      "id": "scene-15-country-alarms-spread",
+      "title": "Every Middlesex Village and Farm",
+      "lineStart": 161,
+      "lineEnd": 174,
+      "prompt": "A broad countryside montage at night and dawn, farmhouses, village roads, riders carrying warning from home to home, windows glowing, barns, fences, trees, the alarm spreads outward like a wave, stylized voxel landscape with many little story details. voxel-inspired colonial Boston storybook scene, block-built environment, cinematic moonlight, dramatic lantern glow, kid-friendly educational adventure, richly detailed but readable composition, no copyrighted game assets, no text, no logo, no watermark"
+    },
+    {
+      "id": "scene-16-morning-bells",
+      "title": "The Bells Ring Through the Morning",
+      "lineStart": 175,
+      "lineEnd": 192,
+      "prompt": "Morning after the midnight warning, village church bells ringing, colonial town waking under early light, people gathered, sense that history has changed, warm sunrise replacing cold moonlight, still using the same voxel-inspired handcrafted world but shifting toward hope and consequence. voxel-inspired colonial Boston storybook scene, block-built environment, cinematic moonlight, dramatic lantern glow, kid-friendly educational adventure, richly detailed but readable composition, no copyrighted game assets, no text, no logo, no watermark"
+    }
+  ]
+}

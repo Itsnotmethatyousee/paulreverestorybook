@@ -1,0 +1,47 @@
+{
+  "range": "66-86",
+  "alignedToSchedule": true,
+  "source": "../../storybook-page-prompts.json",
+  "styleGuide": {
+    "coreLook": "heavily voxel-inspired colonial Boston storybook, chunky block-built scenery, handcrafted digital diorama feeling, moonlit night palette, warm lantern glow, cinematic page-turn compositions, child-friendly but dramatic",
+    "globalSuffix": "heavily voxel-inspired colonial Boston storybook illustration, block-built handcrafted environment, dramatic moonlight, lantern glow, child-friendly educational adventure, cinematic composition, no copyrighted game assets, no text, no logo, no watermark"
+  },
+  "pagePrompts": [
+    {
+      "id": "66-74-page-01",
+      "title": "The Friend Starts Upward Again",
+      "lineRange": "66-68",
+      "prompt": "Inside the church tower again, the friend climbing upward with lantern in hand or near at hand, the sense of mission becoming more urgent, wood beams, ladders, high windows, storybook page full of purposeful vertical movement, heavily voxel-inspired colonial Boston storybook illustration, block-built handcrafted environment, dramatic moonlight, lantern glow, child-friendly educational adventure, cinematic composition, no copyrighted game assets, no text, no logo, no watermark"
+    },
+    {
+      "id": "66-74-page-02",
+      "title": "Under the Arches of the Belfry",
+      "lineRange": "69-71",
+      "prompt": "The friend arriving beneath the belfry arch inside the Old North Church tower, wooden structure, open night air beyond, strong geometric framing, suspense and determination, heavily voxel-inspired colonial Boston storybook illustration, block-built handcrafted environment, dramatic moonlight, lantern glow, child-friendly educational adventure, cinematic composition, no copyrighted game assets, no text, no logo, no watermark"
+    },
+    {
+      "id": "66-74-page-03",
+      "title": "Lantern Ready in the Dark",
+      "lineRange": "72-74",
+      "prompt": "Close-up storybook page of a lantern being raised in the darkness of the tower, warm gold light against deep navy shadows, hands, wood, and window framing the moment, this should feel like held breath before the signal shines, heavily voxel-inspired colonial Boston storybook illustration, block-built handcrafted environment, dramatic moonlight, lantern glow, child-friendly educational adventure, cinematic composition, no copyrighted game assets, no text, no logo, no watermark"
+    },
+    {
+      "id": "75-86-page-01",
+      "title": "One if by Land, Two if by Sea",
+      "lineRange": "75-78",
+      "prompt": "Iconic storybook page of the lantern signal shining from the belfry arch into the night, the Old North tower strongly framed, harbor darkness below, warm gold light slicing through blue-black air, unforgettable heroic composition, heavily voxel-inspired colonial Boston storybook illustration, block-built handcrafted environment, dramatic moonlight, lantern glow, child-friendly educational adventure, cinematic composition, no copyrighted game assets, no text, no logo, no watermark"
+    },
+    {
+      "id": "75-86-page-02",
+      "title": "Paul Revere Sees the Light",
+      "lineRange": "79-82",
+      "prompt": "Paul Revere on the far shore sees the lantern signal across the dark water, rider and horse in foreground, glowing tower distant but clear, strong line-of-sight composition showing teamwork across space, heavily voxel-inspired colonial Boston storybook illustration, block-built handcrafted environment, dramatic moonlight, lantern glow, child-friendly educational adventure, cinematic composition, no copyrighted game assets, no text, no logo, no watermark"
+    },
+    {
+      "id": "75-86-page-03",
+      "title": "The Signal Means Go",
+      "lineRange": "83-86",
+      "prompt": "A transitional storybook page where Paul Revere, horse, and shoreline are poised in the instant after the signal is understood, muscles tensed, cloak ready to move, the page should feel like a spark before motion bursts forward, heavily voxel-inspired colonial Boston storybook illustration, block-built handcrafted environment, dramatic moonlight, lantern glow, child-friendly educational adventure, cinematic composition, no copyrighted game assets, no text, no logo, no watermark"
+    }
+  ]
+}

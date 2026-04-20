@@ -1,0 +1,263 @@
+{
+  "title": "Paul Revere's Ride",
+  "author": "Henry Wadsworth Longfellow",
+  "sourceNote": "Text verified against The Children's Own Longfellow (Project Gutenberg, public domain).",
+  "lines": [
+    { "lineNumber": 1, "text": "Listen, my children, and you shall hear", "sceneTag": "opening" },
+    { "lineNumber": 2, "text": "Of the midnight ride of Paul Revere,", "sceneTag": "opening" },
+    { "lineNumber": 3, "text": "On the eighteenth of April, in Seventy-five;", "sceneTag": "opening" },
+    { "lineNumber": 4, "text": "Hardly a man is now alive", "sceneTag": "opening" },
+    { "lineNumber": 5, "text": "Who remembers that famous day and year.", "sceneTag": "opening" },
+    { "lineNumber": 6, "text": "He said to his friend, \"If the British march", "sceneTag": "plan" },
+    { "lineNumber": 7, "text": "By land or sea from the town to-night,", "sceneTag": "plan" },
+    { "lineNumber": 8, "text": "Hang a lantern aloft in the belfry-arch", "sceneTag": "plan", "keywords": ["lantern", "belfry", "arch"] },
+    { "lineNumber": 9, "text": "Of the North Church tower as a signal light,—", "sceneTag": "plan", "keywords": ["North Church", "tower", "signal"] },
+    { "lineNumber": 10, "text": "One, if by land, and two, if by sea;", "sceneTag": "plan" },
+    { "lineNumber": 11, "text": "And I on the opposite shore will be,", "sceneTag": "plan" },
+    { "lineNumber": 12, "text": "Ready to ride and spread the alarm", "sceneTag": "plan" },
+    { "lineNumber": 13, "text": "Through every Middlesex village and farm,", "sceneTag": "plan" },
+    { "lineNumber": 14, "text": "For the country folk to be up and to arm.\"", "sceneTag": "plan" },
+    { "lineNumber": 15, "text": "Then he said, \"Good night!\" and with muffled oar", "sceneTag": "moonrise-bay" },
+    { "lineNumber": 16, "text": "Silently rowed to the Charlestown shore,", "sceneTag": "moonrise-bay" },
+    { "lineNumber": 17, "text": "Just as the moon rose over the bay,", "sceneTag": "moonrise-bay", "keywords": ["moon", "bay"] },
+    { "lineNumber": 18, "text": "Where swinging wide at her moorings lay", "sceneTag": "moonrise-bay" },
+    { "lineNumber": 19, "text": "The Somerset, British man-of-war;", "sceneTag": "somerset", "keywords": ["Somerset", "man-of-war"] },
+    { "lineNumber": 20, "text": "A phantom ship, with each mast and spar", "sceneTag": "somerset" },
+    { "lineNumber": 21, "text": "Across the moon like a prison bar,", "sceneTag": "somerset" },
+    { "lineNumber": 22, "text": "And a huge black hulk, that was magnified", "sceneTag": "somerset" },
+    { "lineNumber": 23, "text": "By its own reflection in the tide.", "sceneTag": "somerset" },
+    { "lineNumber": 24, "text": "Meanwhile, his friend, through alley and street,", "sceneTag": "street-watch" },
+    { "lineNumber": 25, "text": "Wanders and watches with eager ears,", "sceneTag": "street-watch" },
+    { "lineNumber": 26, "text": "Till in the silence around him he hears", "sceneTag": "street-watch" },
+    { "lineNumber": 27, "text": "The muster of men at the barrack door,", "sceneTag": "street-watch" },
+    { "lineNumber": 28, "text": "The sound of arms, and the tramp of feet,", "sceneTag": "street-watch" },
+    { "lineNumber": 29, "text": "And the measured tread of the grenadiers,", "sceneTag": "street-watch" },
+    { "lineNumber": 30, "text": "Marching down to their boats on the shore.", "sceneTag": "harbor-warning" },
+    { "lineNumber": 31, "text": "Then he climbed the tower of the Old North Church,", "sceneTag": "tower-climb", "keywords": ["climbed", "tower", "Old North Church"] },
+    { "lineNumber": 32, "text": "By the wooden stairs, with stealthy tread,", "sceneTag": "tower-climb" },
+    { "lineNumber": 33, "text": "To the belfry-chamber overhead,", "sceneTag": "tower-climb" },
+    { "lineNumber": 34, "text": "And startled the pigeons from their perch", "sceneTag": "tower-climb" },
+    { "lineNumber": 35, "text": "On the sombre rafters, that round him made", "sceneTag": "tower-climb" },
+    { "lineNumber": 36, "text": "Masses and moving shapes of shade,—", "sceneTag": "tower-climb" },
+    { "lineNumber": 37, "text": "By the trembling ladder, steep and tall,", "sceneTag": "tower-climb" },
+    { "lineNumber": 38, "text": "To the highest window in the wall,", "sceneTag": "tower-climb" },
+    { "lineNumber": 39, "text": "Where he paused to listen and look down", "sceneTag": "tower-climb" },
+    { "lineNumber": 40, "text": "A moment on the roofs of the town,", "sceneTag": "rooftops" },
+    { "lineNumber": 41, "text": "And the moonlight flowing over all.", "sceneTag": "rooftops" },
+    {
+      "lineNumber": 42,
+      "text": "Beneath, in the churchyard, lay the dead,",
+      "sceneTag": "churchyard-watch",
+      "keywords": ["churchyard", "dead"],
+      "kidExplanation": "He looks down from the tower and sees the graveyard below. It feels quiet, spooky, and important, like the whole night is holding its breath."
+    },
+    {
+      "lineNumber": 43,
+      "text": "In their night-encampment on the hill,",
+      "sceneTag": "churchyard-watch",
+      "keywords": ["night-encampment", "hill"]
+    },
+    {
+      "lineNumber": 44,
+      "text": "Wrapped in silence so deep and still",
+      "sceneTag": "churchyard-watch",
+      "keywords": ["silence", "still"]
+    },
+    {
+      "lineNumber": 45,
+      "text": "That he could hear, like a sentinel's tread,",
+      "sceneTag": "churchyard-watch",
+      "keywords": ["sentinel", "tread"]
+    },
+    {
+      "lineNumber": 46,
+      "text": "The watchful night-wind, as it went",
+      "sceneTag": "churchyard-watch",
+      "keywords": ["watchful", "night-wind"],
+      "kidExplanation": "The wind sounds like a guard walking around camp. Longfellow turns the wind into something alive and sneaky."
+    },
+    {
+      "lineNumber": 47,
+      "text": "Creeping along from tent to tent,",
+      "sceneTag": "churchyard-watch",
+      "keywords": ["creeping", "tent"]
+    },
+    {
+      "lineNumber": 48,
+      "text": "And seeming to whisper, \"All is well!\"",
+      "sceneTag": "churchyard-watch",
+      "keywords": ["whisper", "all is well"]
+    },
+    {
+      "lineNumber": 49,
+      "text": "A moment only he feels the spell",
+      "sceneTag": "churchyard-watch",
+      "keywords": ["moment", "spell"]
+    },
+    {
+      "lineNumber": 50,
+      "text": "Of the place and the hour, and the secret dread",
+      "sceneTag": "churchyard-watch",
+      "keywords": ["place", "hour", "dread"],
+      "kidExplanation": "For a second, the tower, the graves, and the dark hour feel almost magical and scary together."
+    },
+    {
+      "lineNumber": 51,
+      "text": "Of the lonely belfry and the dead;",
+      "sceneTag": "churchyard-watch",
+      "keywords": ["lonely", "belfry", "dead"]
+    },
+    {
+      "lineNumber": 52,
+      "text": "For suddenly all his thoughts are bent",
+      "sceneTag": "moonrise-bay",
+      "keywords": ["suddenly", "thoughts"]
+    },
+    {
+      "lineNumber": 53,
+      "text": "On a shadowy something far away,",
+      "sceneTag": "moonrise-bay",
+      "keywords": ["shadowy", "far away"]
+    },
+    {
+      "lineNumber": 54,
+      "text": "Where the river widens to meet the bay,—",
+      "sceneTag": "moonrise-bay",
+      "keywords": ["river", "bay"],
+      "kidExplanation": "Now his attention snaps away from the graveyard and out toward the water where the warning matters."
+    },
+    {
+      "lineNumber": 55,
+      "text": "A line of black that bends and floats",
+      "sceneTag": "harbor-warning",
+      "keywords": ["line of black", "floats"]
+    },
+    {
+      "lineNumber": 56,
+      "text": "On the rising tide, like a bridge of boats.",
+      "sceneTag": "harbor-warning",
+      "keywords": ["rising tide", "bridge", "boats"]
+    },
+    {
+      "lineNumber": 57,
+      "text": "Meanwhile, impatient to mount and ride,",
+      "sceneTag": "ride-prep",
+      "keywords": ["impatient", "mount", "ride"]
+    },
+    {
+      "lineNumber": 58,
+      "text": "Booted and spurred, with a heavy stride",
+      "sceneTag": "ride-prep",
+      "keywords": ["booted", "spurred", "stride"]
+    },
+    {
+      "lineNumber": 59,
+      "text": "On the opposite shore walked Paul Revere.",
+      "sceneTag": "ride-prep",
+      "keywords": ["opposite shore", "Paul Revere"],
+      "kidExplanation": "While the friend watches from the tower, Paul Revere is pacing on the other side, ready to explode into action."
+    },
+    {
+      "lineNumber": 60,
+      "text": "Now he patted his horse's side,",
+      "sceneTag": "ride-prep",
+      "keywords": ["horse", "side"]
+    },
+    {
+      "lineNumber": 61,
+      "text": "Now gazed at the landscape far and near,",
+      "sceneTag": "ride-prep",
+      "keywords": ["landscape", "far", "near"]
+    },
+    {
+      "lineNumber": 62,
+      "text": "Then, impetuous, stamped the earth,",
+      "sceneTag": "ride-prep",
+      "keywords": ["impetuous", "stamped", "earth"]
+    },
+    {
+      "lineNumber": 63,
+      "text": "And turned and tightened his saddle-girth;",
+      "sceneTag": "ride-prep",
+      "keywords": ["tightened", "saddle-girth"],
+      "kidExplanation": "He cannot stand still. He checks the saddle because he knows the ride will begin the second the signal appears."
+    },
+    {
+      "lineNumber": 64,
+      "text": "But mostly he watched with eager search",
+      "sceneTag": "lantern-signal",
+      "keywords": ["watched", "eager", "search"]
+    },
+    {
+      "lineNumber": 65,
+      "text": "The belfry-tower of the Old North Church,",
+      "sceneTag": "lantern-signal",
+      "keywords": ["belfry-tower", "Old North Church"]
+    },
+    { "lineNumber": 66, "text": "As it rose above the graves on the hill,", "sceneTag": "lantern-signal", "keywords": ["graves", "hill"] },
+    { "lineNumber": 67, "text": "Lonely and spectral and sombre and still.", "sceneTag": "lantern-signal", "keywords": ["spectral", "sombre", "still"] },
+    { "lineNumber": 68, "text": "And lo! as he looks, on the belfry's height", "sceneTag": "lantern-signal", "keywords": ["lo", "belfry", "height"] },
+    { "lineNumber": 69, "text": "A glimmer, and then a gleam of light!", "sceneTag": "lantern-signal", "keywords": ["glimmer", "gleam", "light"] },
+    { "lineNumber": 70, "text": "He springs to the saddle, the bridle he turns,", "sceneTag": "lantern-signal", "keywords": ["springs", "saddle", "bridle"] },
+    { "lineNumber": 71, "text": "But lingers and gazes, till full on his sight,", "sceneTag": "lantern-signal", "keywords": ["lingers", "gazes", "sight"] },
+    { "lineNumber": 72, "text": "A second lamp in the belfry burns!", "sceneTag": "lantern-signal", "keywords": ["second lamp", "belfry", "burns"] },
+    { "lineNumber": 73, "text": "A hurry of hoofs in a village street,", "sceneTag": "harbor-warning" },
+    { "lineNumber": 74, "text": "A shape in the moonlight, a bulk in the dark,", "sceneTag": "harbor-warning" },
+    { "lineNumber": 75, "text": "And beneath, from the pebbles, in passing, a spark", "sceneTag": "harbor-warning" },
+    { "lineNumber": 76, "text": "Struck out by a steed flying fearless and fleet:", "sceneTag": "harbor-warning" },
+    { "lineNumber": 77, "text": "That was all! And yet, through the gloom and the light,", "sceneTag": "harbor-warning" },
+    { "lineNumber": 78, "text": "The fate of a nation was riding that night;", "sceneTag": "harbor-warning" },
+    { "lineNumber": 79, "text": "And the spark struck out by that steed, in his flight,", "sceneTag": "harbor-warning" },
+    { "lineNumber": 80, "text": "Kindled the land into flame with its heat.", "sceneTag": "harbor-warning" },
+    { "lineNumber": 81, "text": "He has left the village and mounted the steep,", "sceneTag": "medford-ride" },
+    { "lineNumber": 82, "text": "And beneath him, tranquil and broad and deep,", "sceneTag": "medford-ride" },
+    { "lineNumber": 83, "text": "Is the Mystic, meeting the ocean tides;", "sceneTag": "medford-ride" },
+    { "lineNumber": 84, "text": "And under the alders that skirt its edge,", "sceneTag": "medford-ride" },
+    { "lineNumber": 85, "text": "Now soft on the sand, now loud on the ledge,", "sceneTag": "medford-ride" },
+    { "lineNumber": 86, "text": "Is heard the tramp of his steed as he rides.", "sceneTag": "medford-ride" },
+    { "lineNumber": 87, "text": "It was twelve by the village clock,", "sceneTag": "medford-ride" },
+    { "lineNumber": 88, "text": "When he crossed the bridge into Medford town.", "sceneTag": "medford-ride" },
+    { "lineNumber": 89, "text": "He heard the crowing of the cock,", "sceneTag": "medford-ride" },
+    { "lineNumber": 90, "text": "And the barking of the farmer's dog,", "sceneTag": "medford-ride" },
+    { "lineNumber": 91, "text": "And felt the damp of the river fog,", "sceneTag": "medford-ride" },
+    { "lineNumber": 92, "text": "That rises after the sun goes down.", "sceneTag": "medford-ride" },
+    { "lineNumber": 93, "text": "It was one by the village clock,", "sceneTag": "lexington-ride" },
+    { "lineNumber": 94, "text": "When he galloped into Lexington.", "sceneTag": "lexington-ride" },
+    { "lineNumber": 95, "text": "He saw the gilded weathercock", "sceneTag": "lexington-ride" },
+    { "lineNumber": 96, "text": "Swim in the moonlight as he passed,", "sceneTag": "lexington-ride" },
+    { "lineNumber": 97, "text": "And the meeting-house windows, blank and bare,", "sceneTag": "lexington-ride" },
+    { "lineNumber": 98, "text": "Gaze at him with a spectral glare,", "sceneTag": "lexington-ride" },
+    { "lineNumber": 99, "text": "As if they already stood aghast", "sceneTag": "lexington-ride" },
+    { "lineNumber": 100, "text": "At the bloody work they would look upon.", "sceneTag": "lexington-ride" },
+    { "lineNumber": 101, "text": "It was two by the village clock,", "sceneTag": "concord" },
+    { "lineNumber": 102, "text": "When he came to the bridge in Concord town", "sceneTag": "concord" },
+    { "lineNumber": 103, "text": "He heard the bleating of the flock,", "sceneTag": "concord" },
+    { "lineNumber": 104, "text": "And the twitter of birds among the trees,", "sceneTag": "concord" },
+    { "lineNumber": 105, "text": "And felt the breath of the morning breeze", "sceneTag": "concord" },
+    { "lineNumber": 106, "text": "Blowing over the meadows brown.", "sceneTag": "concord" },
+    { "lineNumber": 107, "text": "And one was safe and asleep in his bed", "sceneTag": "concord" },
+    { "lineNumber": 108, "text": "Who at the bridge would be first to fall,", "sceneTag": "concord" },
+    { "lineNumber": 109, "text": "Who that day would be lying dead,", "sceneTag": "concord" },
+    { "lineNumber": 110, "text": "Pierced by a British musket-ball.", "sceneTag": "concord" },
+    { "lineNumber": 111, "text": "You know the rest. In the books you have read.", "sceneTag": "aftermath" },
+    { "lineNumber": 112, "text": "How the British Regulars fired and fled,—", "sceneTag": "aftermath" },
+    { "lineNumber": 113, "text": "How the farmers gave them ball for ball,", "sceneTag": "aftermath" },
+    { "lineNumber": 114, "text": "From behind each fence and farm-yard wall,", "sceneTag": "aftermath" },
+    { "lineNumber": 115, "text": "Chasing the red-coats down the lane,", "sceneTag": "aftermath" },
+    { "lineNumber": 116, "text": "Then crossing the fields to emerge again", "sceneTag": "aftermath" },
+    { "lineNumber": 117, "text": "Under the trees at the turn of the road,", "sceneTag": "aftermath" },
+    { "lineNumber": 118, "text": "And only pausing to fire and load.", "sceneTag": "aftermath" },
+    { "lineNumber": 119, "text": "So through the night rode Paul Revere;", "sceneTag": "echo-forevermore" },
+    { "lineNumber": 120, "text": "And so through the night went his cry of alarm", "sceneTag": "echo-forevermore" },
+    { "lineNumber": 121, "text": "To every Middlesex village and farm,—", "sceneTag": "echo-forevermore" },
+    { "lineNumber": 122, "text": "A cry of defiance and not of fear,", "sceneTag": "echo-forevermore" },
+    { "lineNumber": 123, "text": "A voice in the darkness, a knock at the door,", "sceneTag": "echo-forevermore" },
+    { "lineNumber": 124, "text": "And a word that shall echo forevermore!", "sceneTag": "echo-forevermore" },
+    { "lineNumber": 125, "text": "For, borne on the night-wind of the Past", "sceneTag": "echo-forevermore" },
+    { "lineNumber": 126, "text": "Through all our history, to the last,", "sceneTag": "echo-forevermore" },
+    { "lineNumber": 127, "text": "In the hour of darkness and peril and need,", "sceneTag": "echo-forevermore" },
+    { "lineNumber": 128, "text": "The people will waken and listen to hear", "sceneTag": "echo-forevermore" },
+    { "lineNumber": 129, "text": "The hurrying hoof-beats of that steed", "sceneTag": "echo-forevermore" },
+    { "lineNumber": 130, "text": "And the midnight message of Paul Revere.", "sceneTag": "echo-forevermore" }
+  ]
+}

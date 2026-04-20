@@ -1,0 +1,53 @@
+{
+  "range": "87-110",
+  "alignedToSchedule": true,
+  "source": "../../storybook-page-prompts.json",
+  "styleGuide": {
+    "coreLook": "heavily voxel-inspired colonial Boston storybook, chunky block-built scenery, handcrafted digital diorama feeling, moonlit night palette, warm lantern glow, cinematic page-turn compositions, child-friendly but dramatic",
+    "globalSuffix": "heavily voxel-inspired colonial Boston storybook illustration, block-built handcrafted environment, dramatic moonlight, lantern glow, child-friendly educational adventure, cinematic composition, no copyrighted game assets, no text, no logo, no watermark"
+  },
+  "pagePrompts": [
+    {
+      "id": "87-100-page-01",
+      "title": "Already Flying Down the Road",
+      "lineRange": "87-90",
+      "prompt": "Paul Revere is already well into the midnight ride on an inland colonial road, no shoreline visible, no moment of takeoff, just full-speed motion under moonlight with fences, trees, and sleeping houses rushing past, the horse stretched into a strong gallop and the road clearly carrying him away from Boston, heavily voxel-inspired colonial Boston storybook illustration, block-built handcrafted environment, dramatic moonlight, lantern glow, child-friendly educational adventure, cinematic composition, no copyrighted game assets, no text, no logo, no watermark"
+    },
+    {
+      "id": "87-100-page-02",
+      "title": "Spark Struck Out by the Steed",
+      "lineRange": "90-92",
+      "prompt": "Close dynamic storybook page of galloping horse hooves striking sparks from a hard colonial road at night, cropped low to the ground so the image is about speed, impact, dust, and light rather than a repeated rider pose, Paul Revere only partly visible above, heavily voxel-inspired colonial Boston storybook illustration, block-built handcrafted environment, dramatic moonlight, lantern glow, child-friendly educational adventure, cinematic composition, no copyrighted game assets, no text, no logo, no watermark"
+    },
+    {
+      "id": "87-100-page-03",
+      "title": "Into Lexington",
+      "lineRange": "93-96",
+      "prompt": "Paul Revere galloping into Lexington under the village clock, the meeting-house and weathercock clearly visible ahead, the village opening around him in a new location, pale moonlight on the town, a page that balances fast arrival with eerie stillness in the sleeping village, heavily voxel-inspired colonial Boston storybook illustration, block-built handcrafted environment, dramatic moonlight, lantern glow, child-friendly educational adventure, cinematic composition, no copyrighted game assets, no text, no logo, no watermark"
+    },
+    {
+      "id": "87-100-page-04",
+      "title": "Windows Blank and Bare",
+      "lineRange": "97-100",
+      "prompt": "Closer page on the Lexington meeting-house windows and empty colonial street after Paul Revere has just rushed through, the rider now smaller or partly leaving frame, the windows almost seeming to stare, eerie anticipation of what is coming, dramatic but child-appropriate, heavily voxel-inspired colonial Boston storybook illustration, block-built handcrafted environment, dramatic moonlight, lantern glow, child-friendly educational adventure, cinematic composition, no copyrighted game assets, no text, no logo, no watermark"
+    },
+    {
+      "id": "101-110-page-01",
+      "title": "Bridge in Concord Town",
+      "lineRange": "101-103",
+      "prompt": "Paul Revere arriving at the bridge in Concord town as the sky begins turning from deep night toward dawn, simple wooden bridge, stream, quiet village forms, this page should feel clearly different from Lexington by using open countryside and bridge geography instead of town streets, heavily voxel-inspired colonial Boston storybook illustration, block-built handcrafted environment, dramatic moonlight, lantern glow, child-friendly educational adventure, cinematic composition, no copyrighted game assets, no text, no logo, no watermark"
+    },
+    {
+      "id": "101-110-page-02",
+      "title": "The Morning Breeze Over the Meadows",
+      "lineRange": "103-106",
+      "prompt": "Concord meadows at earliest dawn, flock sounds implied, birds in trees, pale breeze moving over brown fields while Paul Revere rides through, calmer and softer page after the midnight tension, heavily voxel-inspired colonial Boston storybook illustration, block-built handcrafted environment, dramatic moonlight, lantern glow, child-friendly educational adventure, cinematic composition, no copyrighted game assets, no text, no logo, no watermark"
+    },
+    {
+      "id": "101-110-page-03",
+      "title": "One Safe and Asleep",
+      "lineRange": "107-110",
+      "prompt": "Tender, solemn storybook page of a sleeping colonial home near Concord while danger approaches elsewhere, dawn light beginning outside, quiet bedchamber mood, meant to foreshadow the life that will soon be lost at the bridge, respectful and child-appropriate, heavily voxel-inspired colonial Boston storybook illustration, block-built handcrafted environment, dramatic moonlight, lantern glow, child-friendly educational adventure, cinematic composition, no copyrighted game assets, no text, no logo, no watermark"
+    }
+  ]
+}
