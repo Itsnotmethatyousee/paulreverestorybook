@@ -7,6 +7,8 @@ const KOKORO_MODEL_ID = "onnx-community/Kokoro-82M-v1.0-ONNX";
 const CLOUD_WORKER_BASE_URL = "https://paul-revere-murf.alex-8ff.workers.dev";
 const OPENAI_TTS_URL = `${CLOUD_WORKER_BASE_URL}/tts`;
 const OPENAI_STT_URL = `${CLOUD_WORKER_BASE_URL}/stt`;
+const CLOUD_SAVE_URL = `${CLOUD_WORKER_BASE_URL}/save-progress`;
+const CLOUD_LOAD_URL = `${CLOUD_WORKER_BASE_URL}/load-progress`;
 const OPENAI_TTS_DEFAULTS = {
   voice: "verse",
   model: "gpt-4o-mini-tts",
@@ -567,6 +569,10 @@ const elements = {
   speechToggle: document.getElementById("speechToggle"),
   strictnessSelect: document.getElementById("strictnessSelect"),
   voiceSelect: document.getElementById("voiceSelect"),
+  cloudPasskeyInput: document.getElementById("cloudPasskeyInput"),
+  cloudSaveBtn: document.getElementById("cloudSaveBtn"),
+  cloudLoadBtn: document.getElementById("cloudLoadBtn"),
+  cloudSaveFeedback: document.getElementById("cloudSaveFeedback"),
   exportProgressBtn: document.getElementById("exportProgressBtn"),
   importProgressInput: document.getElementById("importProgressInput"),
   resetProgressBtn: document.getElementById("resetProgressBtn"),
@@ -676,6 +682,14 @@ function bindEvents() {
     renderSpeechSupport();
   });
 
+  elements.cloudPasskeyInput.addEventListener("input", () => {
+    state.settings.cloudPasskey = normalizePasskey(elements.cloudPasskeyInput.value);
+    elements.cloudPasskeyInput.value = state.settings.cloudPasskey;
+    saveSettings();
+  });
+  elements.cloudSaveBtn.addEventListener("click", saveCloudProgress);
+  elements.cloudLoadBtn.addEventListener("click", loadCloudProgress);
+
   elements.strictnessSelect.addEventListener("change", () => {
     state.settings.strictnessLevel = elements.strictnessSelect.value;
     saveSettings();
@@ -781,6 +795,7 @@ function loadSettings(scheduleConfig) {
     speechEnabled: saved?.speechEnabled ?? true,
     strictnessLevel: saved?.strictnessLevel ?? "standard",
     preferredVoiceURI: savedVoicePreference ?? "openai:verse",
+    cloudPasskey: saved?.cloudPasskey ?? "",
   };
 }
 
@@ -834,6 +849,9 @@ function populateSettings() {
     .map(([value, strictness]) => `<option value="${value}">${strictness.label}</option>`)
     .join("");
   elements.strictnessSelect.value = state.settings.strictnessLevel;
+  if (elements.cloudPasskeyInput) {
+    elements.cloudPasskeyInput.value = state.settings.cloudPasskey ?? "";
+  }
   populateVoiceSelect();
 }
 
@@ -2772,6 +2790,99 @@ function hexToRgb(hex) {
   const clean = hex.replace("#", "");
   const full = clean.length === 3 ? clean.split("").map((char) => `${char}${char}`).join("") : clean;
   return [0, 2, 4].map((index) => Number.parseInt(full.slice(index, index + 2), 16));
+}
+
+function normalizePasskey(value) {
+  return (value ?? "")
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-_]/g, "")
+    .slice(0, 40);
+}
+
+function setCloudFeedback(message, tone = "neutral") {
+  if (!elements.cloudSaveFeedback) return;
+  setFeedback(elements.cloudSaveFeedback, message, tone);
+}
+
+function buildCloudPayload(passkey) {
+  return {
+    passkey,
+    savedAt: new Date().toISOString(),
+    settings: state.settings,
+    progress: state.progress,
+  };
+}
+
+async function saveCloudProgress() {
+  const passkey = normalizePasskey(elements.cloudPasskeyInput.value);
+  if (!passkey) {
+    setCloudFeedback("Add a cloud passkey first so this child can load the same progress somewhere else.", "warning");
+    return;
+  }
+
+  state.settings.cloudPasskey = passkey;
+  elements.cloudPasskeyInput.value = passkey;
+  saveSettings();
+  setCloudFeedback("Saving progress to the cloud...", "neutral");
+
+  try {
+    const response = await fetch(CLOUD_SAVE_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(buildCloudPayload(passkey)),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || data?.ok === false) {
+      throw new Error(data?.error ?? data?.message ?? "Cloud save failed.");
+    }
+    setCloudFeedback(`Cloud save complete for passkey "${passkey}".`, "positive");
+  } catch (error) {
+    console.warn("Cloud save failed.", error);
+    setCloudFeedback("Cloud save did not work yet. The local device save is still safe.", "warning");
+  }
+}
+
+async function loadCloudProgress() {
+  const passkey = normalizePasskey(elements.cloudPasskeyInput.value);
+  if (!passkey) {
+    setCloudFeedback("Enter the child's cloud passkey first, then load the saved progress.", "warning");
+    return;
+  }
+
+  state.settings.cloudPasskey = passkey;
+  elements.cloudPasskeyInput.value = passkey;
+  saveSettings();
+  setCloudFeedback("Loading progress from the cloud...", "neutral");
+
+  try {
+    const response = await fetch(CLOUD_LOAD_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ passkey }),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || data?.ok === false) {
+      throw new Error(data?.error ?? data?.message ?? "Cloud load failed.");
+    }
+
+    if (data.settings) {
+      state.settings = { ...state.settings, ...data.settings, cloudPasskey: passkey };
+      saveSettings();
+    }
+    if (data.progress) {
+      state.progress = data.progress;
+      saveProgress();
+    }
+
+    ensureProgressShape();
+    render();
+    setCloudFeedback(`Cloud progress loaded for passkey "${passkey}".`, "positive");
+  } catch (error) {
+    console.warn("Cloud load failed.", error);
+    setCloudFeedback("No cloud save was found for that passkey yet, or the cloud service is not ready.", "warning");
+  }
 }
 
 function exportProgress() {

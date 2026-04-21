@@ -245,6 +245,18 @@
               <select id="voiceSelect"></select>
             </label>
 
+            <div class="cloud-save-panel">
+              <label class="stacked-label" for="cloudPasskeyInput">
+                <span>Cloud passkey</span>
+                <input id="cloudPasskeyInput" type="text" maxlength="40" placeholder="Example: Elly4721">
+              </label>
+              <div class="action-grid">
+                <button id="cloudSaveBtn" class="secondary-button">Save to cloud</button>
+                <button id="cloudLoadBtn" class="secondary-button">Load from cloud</button>
+              </div>
+              <div id="cloudSaveFeedback" class="feedback-box neutral">Use a family passkey to save progress on one device and load it on another.</div>
+            </div>
+
             <div class="action-grid">
               <button id="exportProgressBtn" class="secondary-button">Export progress</button>
               <label class="secondary-button file-button">
