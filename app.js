@@ -485,6 +485,8 @@ const state = {
     previousChapterId: null,
     chapterTransition: 0,
     availableVoices: [],
+    storyImageCache: new Map(),
+    pendingStoryImagePath: "",
   },
 };
 
@@ -1045,6 +1047,7 @@ function renderStoryIllustration(chapter, chapterProgress) {
   const pages = chapterStoryPages[chapter.id] ?? [];
   if (!pages.length) {
     elements.storyImage.removeAttribute("src");
+    elements.storyImage.removeAttribute("data-active-src");
     elements.storyImage.classList.remove("visible");
     elements.storyCanvas.classList.remove("hidden-canvas");
     return;
@@ -1056,12 +1059,55 @@ function renderStoryIllustration(chapter, chapterProgress) {
     ? clamp(activeActionIndex + 1, 0, pages.length - 1)
     : clamp(completedActions, 0, pages.length - 1);
   const pagePath = pages[pageIndex];
-  if (elements.storyImage.getAttribute("src") !== pagePath) {
-    elements.storyImage.src = pagePath;
-    elements.storyImage.alt = `${chapter.title} storybook page ${pageIndex + 1}`;
+  elements.storyImage.alt = `${chapter.title} storybook page ${pageIndex + 1}`;
+  pages.forEach((path) => preloadStoryImage(path));
+  showStoryImage(pagePath);
+}
+
+function showStoryImage(pagePath) {
+  if (!pagePath) return;
+  const activeSrc = elements.storyImage.getAttribute("data-active-src");
+  if (activeSrc === pagePath && elements.storyImage.classList.contains("visible")) {
+    elements.storyCanvas.classList.add("hidden-canvas");
+    return;
   }
-  elements.storyImage.classList.add("visible");
-  elements.storyCanvas.classList.add("hidden-canvas");
+
+  state.ui.pendingStoryImagePath = pagePath;
+  preloadStoryImage(pagePath)
+    .then(() => {
+      if (state.ui.pendingStoryImagePath !== pagePath) return;
+      elements.storyImage.src = pagePath;
+      elements.storyImage.setAttribute("data-active-src", pagePath);
+      elements.storyImage.classList.add("visible");
+      elements.storyCanvas.classList.add("hidden-canvas");
+    })
+    .catch((error) => {
+      console.warn("Story image failed to load.", error);
+      if (state.ui.pendingStoryImagePath !== pagePath) return;
+      elements.storyImage.src = pagePath;
+      elements.storyImage.setAttribute("data-active-src", pagePath);
+      elements.storyImage.classList.add("visible");
+      elements.storyCanvas.classList.add("hidden-canvas");
+    });
+}
+
+function preloadStoryImage(pagePath) {
+  if (!pagePath) return Promise.resolve();
+  const cached = state.ui.storyImageCache.get(pagePath);
+  if (cached) return cached;
+
+  const promise = new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(pagePath);
+    image.onerror = reject;
+    image.src = pagePath;
+    if (image.complete) {
+      resolve(pagePath);
+    }
+  });
+
+  state.ui.storyImageCache.set(pagePath, promise);
+  return promise;
 }
 
 function renderMemorizePanel() {
