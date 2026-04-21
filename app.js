@@ -4,14 +4,14 @@ const LEGACY_PROGRESS_KEYS = ["lantern-quest-progress-v2", "lantern-quest-progre
 const LEGACY_SETTINGS_KEYS = ["lantern-quest-settings-v2", "lantern-quest-settings-v1"];
 const KOKORO_JS_URL = "https://cdn.jsdelivr.net/npm/kokoro-js@1.2.0/+esm";
 const KOKORO_MODEL_ID = "onnx-community/Kokoro-82M-v1.0-ONNX";
-const TRANSFORMERS_JS_URL = "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.7.6/+esm";
-const WHISPER_MODEL_ID = "Xenova/whisper-base.en";
-const MURF_WORKER_URL = "https://paul-revere-murf.alex-8ff.workers.dev/";
-const MURF_DEFAULT_VOICE = {
-  voiceId: "Charles",
-  style: "Conversational",
-  model: "Falcon",
-  locale: "en-US",
+const CLOUD_WORKER_BASE_URL = "https://paul-revere-murf.alex-8ff.workers.dev";
+const OPENAI_TTS_URL = `${CLOUD_WORKER_BASE_URL}/tts`;
+const OPENAI_STT_URL = `${CLOUD_WORKER_BASE_URL}/stt`;
+const OPENAI_TTS_DEFAULTS = {
+  voice: "verse",
+  model: "gpt-4o-mini-tts",
+  instructions: "Speak warmly, clearly, and naturally to a fourth grader who is memorizing poetry. Keep the delivery expressive but calm.",
+  response_format: "mp3",
 };
 const KOKORO_VOICE_LABELS = {
   af_bella: "Bella",
@@ -30,28 +30,28 @@ const WORD_CONNECTORS = new Set([
 const stageDefinitions = [
   {
     stage: 1,
-    label: "Stage 1: Read it",
-    instruction: "Read the chapter lines aloud and type the focus line with the full text visible.",
+    label: "Stage 1: Power words",
+    instruction: "Use the strongest words in the line to remember how it goes.",
   },
   {
     stage: 2,
-    label: "Stage 2: Power words",
-    instruction: "Use the glowing power words to rebuild the focus line.",
-  },
-  {
-    stage: 3,
-    label: "Stage 3: Missing words",
+    label: "Stage 2: Missing words",
     instruction: "Fill the hidden gaps without losing the line's rhythm or wording.",
   },
   {
-    stage: 4,
-    label: "Stage 4: First letters",
+    stage: 3,
+    label: "Stage 3: First letters",
     instruction: "Only the first letters remain. Rebuild the line from the pattern.",
   },
   {
+    stage: 4,
+    label: "Stage 4: Hidden recall",
+    instruction: "The line is hidden now. Say or type it from memory before moving on.",
+  },
+  {
     stage: 5,
-    label: "Stage 5: Hidden recall",
-    instruction: "The text is hidden now. Type the full line from memory before moving to recitation.",
+    label: "Stage 5: Prove the line",
+    instruction: "One more clean recall so the line feels ready for the recital gate.",
   },
 ];
 
@@ -473,7 +473,7 @@ const state = {
     whisperSilenceSinceMs: 0,
     whisperHeardSpeech: false,
     isTranscribing: false,
-    murfStatus: "idle",
+    openAiTtsStatus: "idle",
     kokoroTts: null,
     kokoroInitPromise: null,
     kokoroStatus: "idle",
@@ -635,6 +635,12 @@ function bindEvents() {
   elements.proveHintBtn.addEventListener("click", handleProveHint);
   elements.proveCheckBtn.addEventListener("click", handleProveCheck);
   elements.recordBtn.addEventListener("click", toggleSpeechRecording);
+  elements.memorizeAttemptInput.addEventListener("input", () => {
+    elements.memorizeAttemptInput.dataset.inputSource = "typed";
+  });
+  elements.proveAttemptInput.addEventListener("input", () => {
+    elements.proveAttemptInput.dataset.inputSource = "typed";
+  });
 
   elements.autoModeToggle.addEventListener("change", () => {
     state.settings.progressionMode = elements.autoModeToggle.checked ? "automatic" : "manual";
@@ -763,14 +769,16 @@ function loadSettings(scheduleConfig) {
   const current = safelyParse(localStorage.getItem(SETTINGS_KEY));
   const legacy = LEGACY_SETTINGS_KEYS.map((key) => safelyParse(localStorage.getItem(key))).find(Boolean);
   const saved = current ?? legacy;
-  const savedVoicePreference = saved?.preferredVoiceURI === "browser:auto" ? "murf:charles" : saved?.preferredVoiceURI;
+  const savedVoicePreference = ["browser:auto", "openai:marin"].includes(saved?.preferredVoiceURI)
+    ? "openai:verse"
+    : saved?.preferredVoiceURI;
   return {
     progressionMode: saved?.progressionMode ?? scheduleConfig.defaultProgressionMode ?? "manual",
     manualActiveSectionId: saved?.manualActiveSectionId ?? scheduleConfig.manualActiveSectionId,
     showExplanations: saved?.showExplanations ?? true,
     speechEnabled: saved?.speechEnabled ?? true,
     strictnessLevel: saved?.strictnessLevel ?? "standard",
-    preferredVoiceURI: savedVoicePreference ?? "murf:charles",
+    preferredVoiceURI: savedVoicePreference ?? "openai:verse",
   };
 }
 
@@ -831,14 +839,14 @@ function populateVoiceSelect() {
   const voices = state.ui.availableVoices.filter((voice) => /^en(-|_|$)/i.test(voice.lang ?? "") || /english/i.test(voice.name));
   const autoVoice = getPreferredVoice();
   const options = [
-    `<option value="murf:charles">Murf: Charles</option>`,
+    `<option value="openai:verse">OpenAI: Verse</option>`,
     `<option value="browser:auto">Browser fallback (${escapeHtml(autoVoice?.name ?? "Best available English voice")})</option>`,
     ...voices.map((voice) => `<option value="${escapeHtml(voice.voiceURI)}">${escapeHtml(`Browser: ${voice.name} (${voice.lang})`)}</option>`),
   ];
   elements.voiceSelect.innerHTML = options.join("");
-  elements.voiceSelect.value = state.settings.preferredVoiceURI ?? "murf:charles";
+  elements.voiceSelect.value = state.settings.preferredVoiceURI ?? "openai:verse";
   if (![...elements.voiceSelect.options].some((option) => option.value === elements.voiceSelect.value)) {
-    elements.voiceSelect.value = "murf:charles";
+    elements.voiceSelect.value = "openai:verse";
   }
 }
 
@@ -1099,7 +1107,9 @@ function renderProvePanel() {
   elements.proveInstruction.textContent = line
     ? "Now say the line like it matters in the story you just lived."
     : "This chapter's lines are mastered. Move forward or revisit it any time.";
-  elements.proveTargetCue.textContent = line ? `Cue: ${firstLetters(line.text)}` : "All lines in this chapter are mastered.";
+  elements.proveTargetCue.textContent = line
+    ? "No built-in cue here. Use a hint only if you need one."
+    : "All lines in this chapter are mastered.";
   elements.proveAttemptInput.disabled = !storyDone || !line;
   elements.proveCheckBtn.disabled = !storyDone || !line;
   elements.proveHintBtn.disabled = !storyDone || !line;
@@ -1480,14 +1490,21 @@ function handleProveCheck() {
   }
 
   const result = evaluateAttempt(answer, line.text, state.settings.strictnessLevel);
+  const speechAdjustedResult = maybePromoteSpeechRecitalResult(
+    result,
+    line.text,
+    elements.proveAttemptInput.dataset.inputSource === "speech",
+    state.settings.strictnessLevel,
+  );
   const lineProgress = getChapterProgress(chapter.id).lines[line.lineNumber];
   lineProgress.attempts += 1;
-  lineProgress.bestScore = Math.max(lineProgress.bestScore, result.score);
+  lineProgress.bestScore = Math.max(lineProgress.bestScore, speechAdjustedResult.score);
 
-  if (result.outcome === "pass") {
+  if (speechAdjustedResult.outcome === "pass") {
     lineProgress.mastered = true;
     lineProgress.successes += 1;
     elements.proveAttemptInput.value = "";
+    elements.proveAttemptInput.dataset.inputSource = "";
     state.ui.currentHintLevel = 0;
     elements.proveHintBox.hidden = true;
     elements.proveDiff.hidden = true;
@@ -1500,11 +1517,11 @@ function handleProveCheck() {
 
   saveProgress();
   elements.proveDiff.hidden = false;
-  elements.proveDiff.innerHTML = renderDiff(result);
+  elements.proveDiff.innerHTML = renderDiff(speechAdjustedResult);
   setFeedback(
     elements.proveFeedback,
-    `${result.outcome === "close" ? "You got most of it." : "The line needs another try."} ${buildFeedbackFromResult(result)}`,
-    result.outcome === "close" ? "warning" : "negative",
+    `${speechAdjustedResult.outcome === "close" ? "You got most of it." : "The line needs another try."} ${buildFeedbackFromResult(speechAdjustedResult)}`,
+    speechAdjustedResult.outcome === "close" ? "warning" : "negative",
   );
 }
 
@@ -1651,6 +1668,35 @@ function evaluateAttempt(answer, target, strictnessLevel) {
     score,
     diff: buildDiff(answerWords, targetWords),
     missingImportantWords,
+    metrics: {
+      charScore,
+      wordScore,
+      overlapScore,
+      orderedScore,
+      contentScore,
+      edgeScore,
+    },
+  };
+}
+
+function maybePromoteSpeechRecitalResult(result, target, fromSpeech, strictnessLevel) {
+  if (!fromSpeech || result.outcome === "pass") return result;
+
+  const strictness = state.scheduleConfig.strictnessLevels[strictnessLevel] ?? state.scheduleConfig.strictnessLevels.standard;
+  const targetWordCount = normalizeText(target).split(" ").filter(Boolean).length;
+  const nearPassFloor = strictness.passThreshold - Math.min(0.1, targetWordCount <= 7 ? 0.1 : 0.08);
+  const speechworthy =
+    result.score >= nearPassFloor
+    && result.missingImportantWords.length <= strictness.allowedContentMisses + 1
+    && (result.metrics?.overlapScore ?? 0) >= 0.72
+    && (result.metrics?.orderedScore ?? 0) >= 0.68
+    && (result.metrics?.contentScore ?? 0) >= 0.7;
+
+  if (!speechworthy) return result;
+
+  return {
+    ...result,
+    outcome: "pass",
   };
 }
 
@@ -1728,10 +1774,10 @@ function renderPracticeMarkup(lines, focusLine, stage, unlockedCount = 0) {
       extraClass = "revealed-line";
     } else if (focusLine && line.lineNumber === focusLine.lineNumber) {
       extraClass = "target-line";
-      if (stage === 1) display = `<span class="ghost-word">${"____ ".repeat(normalizeText(line.text).split(" ").length).trim()}</span>`;
-      if (stage === 2) display = keywordOnlyMarkup(line);
-      if (stage === 3) display = missingWordsMarkup(line);
-      if (stage === 4) display = firstLetterMarkup(line.text);
+      if (stage === 1) display = keywordOnlyMarkup(line);
+      if (stage === 2) display = missingWordsMarkup(line);
+      if (stage === 3) display = firstLetterMarkup(line.text);
+      if (stage === 4) display = `<span class="ghost-word">${"____ ".repeat(normalizeText(line.text).split(" ").length).trim()}</span>`;
       if (stage === 5) display = `<span class="ghost-word">${"____ ".repeat(normalizeText(line.text).split(" ").length).trim()}</span>`;
     }
 
@@ -1844,7 +1890,34 @@ function cleanSpeechTranscript(transcript, expectedText) {
     .filter(Boolean);
 
   const cleaned = collapseRepeatedWords(filtered);
-  return cleaned.join(" ").trim();
+  return repairTranscriptAgainstTarget(cleaned, targetWords);
+}
+
+function repairTranscriptAgainstTarget(answerWords, targetWords) {
+  if (!answerWords.length) return "";
+
+  const matchedIndices = [];
+  let searchIndex = 0;
+  answerWords.forEach((word) => {
+    for (let index = searchIndex; index < targetWords.length; index += 1) {
+      if (targetWords[index] === word) {
+        matchedIndices.push(index);
+        searchIndex = index + 1;
+        return;
+      }
+    }
+  });
+
+  const orderedMatch = matchedIndices.length === answerWords.length;
+  const startsAtBeginning = matchedIndices[0] === 0;
+  const reachesEnding = matchedIndices.at(-1) >= targetWords.length - 2;
+  const coverage = answerWords.length / Math.max(targetWords.length, 1);
+
+  if (orderedMatch && startsAtBeginning && reachesEnding && coverage >= 0.5) {
+    return targetWords.join(" ");
+  }
+
+  return answerWords.join(" ").trim();
 }
 
 function collapseRepeatedWords(words) {
@@ -2097,45 +2170,77 @@ async function transcribeWhisperBlob(blob) {
   const line = context?.line ?? null;
   state.ui.isTranscribing = true;
   updateRecordButton();
-  setModeFeedback("Whisper is listening to the recording now. This can take a moment the first time.", "neutral");
+  setModeFeedback("Transcribing the recording now. This should be much more reliable than the old browser mic.", "neutral");
 
-  const objectUrl = URL.createObjectURL(blob);
   try {
-    const transcriber = await getWhisperTranscriber();
-    const output = await transcriber(objectUrl, { chunk_length_s: 15, stride_length_s: 3 });
+    const form = new FormData();
+    form.append("file", blob, "recitation.webm");
+    form.append("prompt", buildTranscriptionPrompt(line?.text ?? ""));
+    const response = await fetch(OPENAI_STT_URL, {
+      method: "POST",
+      body: form,
+    });
+    const output = await response.json().catch(() => ({}));
     const rawTranscript = typeof output?.text === "string" ? output.text.trim() : "";
+    if (!response.ok) {
+      throw new Error(output?.openai?.error?.message ?? output?.error ?? "Speech transcription request failed.");
+    }
+
     const bestTranscript = selectSpeechTranscript(rawTranscript ? [rawTranscript] : [], line?.text);
     const cleanedTranscript = rawTranscript ? cleanSpeechTranscript(rawTranscript, line?.text ?? "") : "";
     const transcript = bestTranscript || cleanedTranscript || rawTranscript;
 
     if (!transcript) {
-      setModeFeedback("Whisper heard audio, but the line didn't come through clearly enough yet. Try again, or type it instead.", "warning");
+      setModeFeedback("I heard the recording, but the line didn't come through clearly enough yet. Try again, or use a hint first.", "warning");
       return;
     }
 
     if (context?.input) {
       context.input.value = transcript;
+      context.input.dataset.inputSource = "speech";
     }
     if (line) {
       const preview = evaluateAttempt(transcript, line.text, state.settings.strictnessLevel);
       const tone = preview.outcome === "pass" ? "positive" : preview.outcome === "close" ? "warning" : "neutral";
       const message = preview.outcome === "pass"
-        ? "Whisper caught a strong match for the poem line. Press Check recitation to lock it in."
+        ? "The recording caught a strong match for the poem line. Press Check recitation to lock it in."
         : preview.outcome === "close"
-          ? "Whisper heard most of the line. Press Check recitation, or tidy the wording first."
-          : "Whisper caught part of it, but typing may still be faster for this one.";
+          ? "The recording heard most of the line. Press Check recitation, or tidy the wording first."
+          : "The recording caught part of it, but you may want to try that line again.";
       setModeFeedback(message, tone);
     } else {
-      setModeFeedback("Whisper heard your recitation. Press Check recitation when you're ready.", "neutral");
+      setModeFeedback("The recording heard your recitation. Press Check recitation when you're ready.", "neutral");
     }
   } catch (error) {
-    console.warn("Whisper transcription failed.", error);
-    setModeFeedback("Whisper could not finish the transcription on this try. Typing still works, and you can try the microphone again.", "warning");
+    console.warn("Cloud transcription failed.", error);
+    setModeFeedback("The speech service could not finish this try. You can try the microphone again, or use a hint first.", "warning");
   } finally {
-    URL.revokeObjectURL(objectUrl);
     state.ui.isTranscribing = false;
     updateRecordButton();
   }
+}
+
+function buildTranscriptionPrompt(expectedText) {
+  const poemGlossary = [
+    "Paul Revere",
+    "churchyard",
+    "night-wind",
+    "belfry",
+    "Somerset",
+    "lantern",
+    "steeple",
+    "Middlesex",
+    "Lexington",
+    "Concord",
+    "phantom ship",
+  ];
+  const expectedLine = expectedText ? `The child is probably saying this exact line or something extremely close to it: "${expectedText}".` : "";
+  return [
+    "This is a child reciting Henry Wadsworth Longfellow's poem Paul Revere's Ride.",
+    "Keep unusual poem words intact instead of simplifying them into ordinary speech.",
+    `Important poem words and phrases include: ${poemGlossary.join(", ")}.`,
+    expectedLine,
+  ].filter(Boolean).join(" ");
 }
 
 async function toggleAmbient() {
@@ -2808,13 +2913,13 @@ async function speakLines(lines) {
   const text = lines.map((line) => line.text).join(" ");
   stopSpeechPlayback();
 
-  if (shouldUseMurf()) {
+  if (shouldUseOpenAITTS()) {
     try {
-      await speakLinesWithMurf(text);
+      await speakLinesWithOpenAITTS(text);
       return;
     } catch (error) {
-      console.warn("Murf failed, falling back to browser speech.", error);
-      state.ui.murfStatus = "error";
+      console.warn("OpenAI TTS failed, falling back to browser speech.", error);
+      state.ui.openAiTtsStatus = "error";
       renderSpeechSupport();
     }
   }
@@ -2838,7 +2943,7 @@ function getPreferredVoice() {
   if (!voices.length) return null;
 
   if (state.settings.preferredVoiceURI
-    && !["auto", "browser:auto", "murf:charles"].includes(state.settings.preferredVoiceURI)
+    && !["auto", "browser:auto", "openai:verse"].includes(state.settings.preferredVoiceURI)
     && !state.settings.preferredVoiceURI.startsWith("kokoro:")) {
     return voices.find((voice) => voice.voiceURI === state.settings.preferredVoiceURI) ?? null;
   }
@@ -2865,13 +2970,13 @@ function getPreferredVoice() {
   return englishVoices[0] ?? voices[0] ?? null;
 }
 
-function shouldUseMurf() {
-  const preference = state.settings?.preferredVoiceURI ?? "murf:charles";
-  return preference === "murf:charles";
+function shouldUseOpenAITTS() {
+  const preference = state.settings?.preferredVoiceURI ?? "openai:verse";
+  return preference === "openai:verse";
 }
 
 function shouldUseKokoro() {
-  const preference = state.settings?.preferredVoiceURI ?? "murf:charles";
+  const preference = state.settings?.preferredVoiceURI ?? "openai:verse";
   return preference === "auto" || preference.startsWith("kokoro:");
 }
 
@@ -2885,14 +2990,14 @@ function getKokoroVoiceLabel(voiceId) {
 }
 
 function getSpeechVoiceStatusLabel() {
-  if (shouldUseMurf()) {
-    if (state.ui.murfStatus === "ready") return "Murf voice: Charles";
-    if (state.ui.murfStatus === "loading") return "Murf voice: Charles (loading)";
-    if (state.ui.murfStatus === "error") {
+  if (shouldUseOpenAITTS()) {
+    if (state.ui.openAiTtsStatus === "ready") return "OpenAI voice: Verse";
+    if (state.ui.openAiTtsStatus === "loading") return "OpenAI voice: Verse (loading)";
+    if (state.ui.openAiTtsStatus === "error") {
       const browserVoice = getPreferredVoice();
-      return `Murf voice: Charles (fallback: ${browserVoice?.name ?? "browser voice"})`;
+      return `OpenAI voice: Verse (fallback: ${browserVoice?.name ?? "browser voice"})`;
     }
-    return "Murf voice: Charles (stand by)";
+    return "OpenAI voice: Verse (stand by)";
   }
 
   if (shouldUseKokoro()) {
@@ -2922,29 +3027,29 @@ function stopSpeechPlayback() {
   }
 }
 
-async function speakLinesWithMurf(text) {
-  state.ui.murfStatus = "loading";
+async function speakLinesWithOpenAITTS(text) {
+  state.ui.openAiTtsStatus = "loading";
   renderSpeechSupport();
-  const response = await fetch(MURF_WORKER_URL, {
+  const response = await fetch(OPENAI_TTS_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       text,
-      voiceId: MURF_DEFAULT_VOICE.voiceId,
-      style: MURF_DEFAULT_VOICE.style,
-      model: MURF_DEFAULT_VOICE.model,
-      locale: MURF_DEFAULT_VOICE.locale,
+      voice: OPENAI_TTS_DEFAULTS.voice,
+      model: OPENAI_TTS_DEFAULTS.model,
+      instructions: OPENAI_TTS_DEFAULTS.instructions,
+      response_format: OPENAI_TTS_DEFAULTS.response_format,
     }),
   });
 
   const data = await response.json().catch(() => ({}));
-  const audioUrl = data?.audioFile ?? data?.murf?.audioFile ?? null;
+  const audioUrl = data?.audioFile ?? data?.openai?.audioFile ?? data?.url ?? null;
   if (!response.ok || !audioUrl) {
-    throw new Error(data?.murf?.error_message ?? data?.error ?? "Murf did not return an audio file.");
+    throw new Error(data?.openai?.error?.message ?? data?.error ?? "OpenAI TTS did not return an audio file.");
   }
 
   state.ui.neuralAudio = new Audio(audioUrl);
-  state.ui.murfStatus = "ready";
+  state.ui.openAiTtsStatus = "ready";
   renderSpeechSupport();
   await state.ui.neuralAudio.play();
 }
