@@ -927,6 +927,10 @@ select {
   cursor: pointer;
 }
 
+.recital-score-box {
+  display: block;
+}
+
 details summary {
   cursor: pointer;
   color: #ffe3a9;

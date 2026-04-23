@@ -474,6 +474,9 @@ const state = {
     whisperSilenceFrame: null,
     whisperSilenceSinceMs: 0,
     whisperHeardSpeech: false,
+    whisperSpeechMs: 0,
+    whisperLastSampleMs: 0,
+    whisperRecordingStartedAt: 0,
     isTranscribing: false,
     openAiTtsStatus: "idle",
     kokoroTts: null,
@@ -489,6 +492,11 @@ const state = {
     availableVoices: [],
     storyImageCache: new Map(),
     pendingStoryImagePath: "",
+    recitalActive: false,
+    recitalLineNumber: null,
+    recitalHintCount: 0,
+    recitalAttemptCount: 0,
+    retryRecitalLineNumber: null,
   },
 };
 
@@ -553,7 +561,10 @@ const elements = {
   proveAttemptInput: document.getElementById("proveAttemptInput"),
   proveHintBtn: document.getElementById("proveHintBtn"),
   proveCheckBtn: document.getElementById("proveCheckBtn"),
+  proveExitBtn: document.getElementById("proveExitBtn"),
+  proveRetryBtn: document.getElementById("proveRetryBtn"),
   proveHintBox: document.getElementById("proveHintBox"),
+  proveScoreBox: document.getElementById("proveScoreBox"),
   proveFeedback: document.getElementById("proveFeedback"),
   proveDiff: document.getElementById("proveDiff"),
   recordBtn: document.getElementById("recordBtn"),
@@ -615,8 +626,12 @@ async function init() {
 function bindEvents() {
   elements.tabButtons.forEach((button) => {
     button.addEventListener("click", () => {
+      if (state.ui.recitalActive && button.dataset.mode !== "prove") {
+        setFeedback(elements.proveFeedback, "Recital mode is locked. Finish the line or tap Exit recital to leave and restart it.", "warning");
+        return;
+      }
       state.ui.activeMode = button.dataset.mode;
-      renderModeTabs();
+      render();
     });
   });
 
@@ -642,6 +657,8 @@ function bindEvents() {
   elements.memorizeCheckBtn.addEventListener("click", handleMemorizeCheck);
   elements.proveHintBtn.addEventListener("click", handleProveHint);
   elements.proveCheckBtn.addEventListener("click", handleProveCheck);
+  elements.proveExitBtn.addEventListener("click", exitRecitalSession);
+  elements.proveRetryBtn.addEventListener("click", retryRecitalSession);
   elements.recordBtn.addEventListener("click", toggleSpeechRecording);
   elements.memorizeAttemptInput.addEventListener("input", () => {
     elements.memorizeAttemptInput.dataset.inputSource = "typed";
@@ -883,6 +900,11 @@ function renderPreface() {
 }
 
 function renderModeTabs() {
+  const chapter = getActiveChapter();
+  const proveLine = chapter ? getFocusLine(chapter, "prove") : null;
+  if (state.ui.activeMode === "prove" && proveLine) {
+    ensureRecitalSession(proveLine.lineNumber);
+  }
   Object.entries(elements.panels).forEach(([mode, panel]) => {
     const active = mode === state.ui.activeMode;
     panel.hidden = !active;
@@ -890,8 +912,10 @@ function renderModeTabs() {
   });
   elements.tabButtons.forEach((button) => {
     const active = button.dataset.mode === state.ui.activeMode;
+    const lockedAway = state.ui.recitalActive && button.dataset.mode !== "prove";
     button.classList.toggle("active", active);
     button.setAttribute("aria-selected", String(active));
+    button.disabled = lockedAway;
   });
 }
 
@@ -1165,11 +1189,15 @@ function renderProvePanel() {
   const chapterProgress = getChapterProgress(chapter.id);
   const storyDone = chapter.actions.every((action) => chapterProgress.storyActions[action.id]);
   const line = getFocusLine(chapter, "prove");
+  const recitalSummaryLine = getRecitalSummaryLine(chapter);
+  if (line && state.ui.activeMode === "prove") {
+    ensureRecitalSession(line.lineNumber);
+  }
 
   elements.proveCheckpointTitle.textContent = chapter.title;
   elements.proveLineRange.textContent = line ? `Line ${line.lineNumber}` : "Chapter clear";
   elements.proveInstruction.textContent = line
-    ? "Now say the line like it matters in the story you just lived."
+    ? "Recital mode is on. The other tabs stay locked until you prove this line or exit recital."
     : "This chapter's lines are mastered. Move forward or revisit it any time.";
   elements.proveTargetCue.textContent = line
     ? "No built-in cue here. Use a hint only if you need one."
@@ -1177,7 +1205,13 @@ function renderProvePanel() {
   elements.proveAttemptInput.disabled = !storyDone || !line;
   elements.proveCheckBtn.disabled = !storyDone || !line;
   elements.proveHintBtn.disabled = !storyDone || !line;
+  elements.proveExitBtn.disabled = !line || !state.ui.recitalActive;
+  elements.proveRetryBtn.disabled = !storyDone || !recitalSummaryLine;
   elements.recordBtn.disabled = !storyDone || !line || !state.settings.speechEnabled || !hasMicInputSupport() || state.ui.isTranscribing;
+  elements.proveScoreBox.textContent = recitalSummaryLine
+    ? buildRecitalSummary(chapterProgress.lines[recitalSummaryLine.lineNumber], recitalSummaryLine.lineNumber)
+    : "No recital score yet. Start recital and prove a line from memory.";
+  elements.proveScoreBox.hidden = false;
 
   if (!storyDone) {
     setFeedback(elements.proveFeedback, "Complete the story scene first. The recital should come after the meaning.", "warning");
@@ -1268,6 +1302,7 @@ function ensureProgressShape() {
         memorizeLineIndex: 0,
         lines: {},
         proveComplete: false,
+        lastRecitalLineNumber: null,
       };
     }
     const chapterProgress = state.progress.sections[section.id].chapters[chapter.id];
@@ -1277,6 +1312,7 @@ function ensureProgressShape() {
     if (typeof chapterProgress.memorizeLineIndex !== "number") chapterProgress.memorizeLineIndex = 0;
     if (!chapterProgress.lines) chapterProgress.lines = {};
     if (typeof chapterProgress.proveComplete !== "boolean") chapterProgress.proveComplete = false;
+    if (typeof chapterProgress.lastRecitalLineNumber !== "number" && chapterProgress.lastRecitalLineNumber !== null) chapterProgress.lastRecitalLineNumber = null;
 
     chapter.actions.forEach((action) => {
       if (typeof chapterProgress.storyActions[action.id] !== "boolean") {
@@ -1291,6 +1327,14 @@ function ensureProgressShape() {
           successes: 0,
           bestScore: 0,
           mastered: false,
+          recitalHintsUsed: 0,
+          recitalExitCount: 0,
+          lastRecitalScore: null,
+          bestRecitalScore: 0,
+          lastRecitalAttempts: 0,
+          lastRecitalHints: 0,
+          lastRecitalExited: false,
+          lastRecitalOutcome: "",
         };
       } else {
         const lineProgress = chapterProgress.lines[line.lineNumber];
@@ -1298,6 +1342,14 @@ function ensureProgressShape() {
         if (typeof lineProgress.successes !== "number") lineProgress.successes = 0;
         if (typeof lineProgress.bestScore !== "number") lineProgress.bestScore = 0;
         if (typeof lineProgress.mastered !== "boolean") lineProgress.mastered = false;
+        if (typeof lineProgress.recitalHintsUsed !== "number") lineProgress.recitalHintsUsed = 0;
+        if (typeof lineProgress.recitalExitCount !== "number") lineProgress.recitalExitCount = 0;
+        if (typeof lineProgress.lastRecitalScore !== "number" && lineProgress.lastRecitalScore !== null) lineProgress.lastRecitalScore = null;
+        if (typeof lineProgress.bestRecitalScore !== "number") lineProgress.bestRecitalScore = 0;
+        if (typeof lineProgress.lastRecitalAttempts !== "number") lineProgress.lastRecitalAttempts = 0;
+        if (typeof lineProgress.lastRecitalHints !== "number") lineProgress.lastRecitalHints = 0;
+        if (typeof lineProgress.lastRecitalExited !== "boolean") lineProgress.lastRecitalExited = false;
+        if (typeof lineProgress.lastRecitalOutcome !== "string") lineProgress.lastRecitalOutcome = "";
       }
     });
   });
@@ -1532,11 +1584,20 @@ function handleMemorizeCheck() {
 }
 
 function handleProveHint() {
+  const chapter = getActiveChapter();
+  const line = getFocusLine(chapter, "prove");
+  if (line) {
+    ensureRecitalSession(line.lineNumber);
+    state.ui.recitalHintCount += 1;
+    const lineProgress = getChapterProgress(chapter.id).lines[line.lineNumber];
+    lineProgress.recitalHintsUsed += 1;
+  }
   state.ui.currentHintLevel += 1;
-  const line = getFocusLine(getActiveChapter(), "prove");
   const hint = line ? getHintForLine(line, state.ui.currentHintLevel) : "This chapter is already mastered.";
   elements.proveHintBox.hidden = false;
   elements.proveHintBox.textContent = hint;
+  saveProgress();
+  renderProvePanel();
 }
 
 function handleProveCheck() {
@@ -1553,6 +1614,8 @@ function handleProveCheck() {
     return;
   }
 
+  ensureRecitalSession(line.lineNumber);
+  state.ui.recitalAttemptCount += 1;
   const result = evaluateAttempt(answer, line.text, state.settings.strictnessLevel);
   const speechAdjustedResult = maybePromoteSpeechRecitalResult(
     result,
@@ -1560,22 +1623,37 @@ function handleProveCheck() {
     elements.proveAttemptInput.dataset.inputSource === "speech",
     state.settings.strictnessLevel,
   );
-  const lineProgress = getChapterProgress(chapter.id).lines[line.lineNumber];
+  const chapterProgress = getChapterProgress(chapter.id);
+  chapterProgress.lastRecitalLineNumber = line.lineNumber;
+  const lineProgress = chapterProgress.lines[line.lineNumber];
   lineProgress.attempts += 1;
   lineProgress.bestScore = Math.max(lineProgress.bestScore, speechAdjustedResult.score);
 
   if (speechAdjustedResult.outcome === "pass") {
+    const recitalScore = calculateRecitalScore({
+      hints: state.ui.recitalHintCount,
+      attempts: state.ui.recitalAttemptCount,
+      exited: false,
+    });
     lineProgress.mastered = true;
     lineProgress.successes += 1;
+    lineProgress.lastRecitalScore = recitalScore;
+    lineProgress.bestRecitalScore = Math.max(lineProgress.bestRecitalScore, recitalScore);
+    lineProgress.lastRecitalAttempts = state.ui.recitalAttemptCount;
+    lineProgress.lastRecitalHints = state.ui.recitalHintCount;
+    lineProgress.lastRecitalExited = false;
+    lineProgress.lastRecitalOutcome = "passed";
+    state.ui.retryRecitalLineNumber = null;
     elements.proveAttemptInput.value = "";
     elements.proveAttemptInput.dataset.inputSource = "";
     state.ui.currentHintLevel = 0;
     elements.proveHintBox.hidden = true;
     elements.proveDiff.hidden = true;
+    resetRecitalSession();
     maybeCompleteChapter(chapter.id);
     saveProgress();
     render();
-    setFeedback(elements.proveFeedback, "You got it. That line is now part of your mastered story.", "positive");
+    setFeedback(elements.proveFeedback, `You got it. That line is now part of your mastered story. Recital score: ${recitalScore}.`, "positive");
     return;
   }
 
@@ -1587,6 +1665,82 @@ function handleProveCheck() {
     `${speechAdjustedResult.outcome === "close" ? "You got most of it." : "The line needs another try."} ${buildFeedbackFromResult(speechAdjustedResult)}`,
     speechAdjustedResult.outcome === "close" ? "warning" : "negative",
   );
+}
+
+function ensureRecitalSession(lineNumber) {
+  if (state.ui.recitalActive && state.ui.recitalLineNumber === lineNumber) return;
+  state.ui.recitalActive = true;
+  state.ui.recitalLineNumber = lineNumber;
+  state.ui.recitalHintCount = 0;
+  state.ui.recitalAttemptCount = 0;
+  state.ui.currentHintLevel = 0;
+  elements.proveHintBox.hidden = true;
+}
+
+function resetRecitalSession() {
+  state.ui.recitalActive = false;
+  state.ui.recitalLineNumber = null;
+  state.ui.recitalHintCount = 0;
+  state.ui.recitalAttemptCount = 0;
+}
+
+function retryRecitalSession() {
+  const chapter = getActiveChapter();
+  const recitalSummaryLine = chapter ? getRecitalSummaryLine(chapter) : null;
+  if (!recitalSummaryLine) return;
+  state.ui.retryRecitalLineNumber = recitalSummaryLine.lineNumber;
+  state.ui.activeMode = "prove";
+  ensureRecitalSession(recitalSummaryLine.lineNumber);
+  render();
+  setFeedback(elements.proveFeedback, `Retry recital is ready for line ${recitalSummaryLine.lineNumber}. The score can improve without erasing mastery.`, "neutral");
+}
+
+function exitRecitalSession() {
+  const chapter = getActiveChapter();
+  const line = chapter ? getFocusLine(chapter, "prove") : null;
+  if (!line || !state.ui.recitalActive) return;
+  const chapterProgress = getChapterProgress(chapter.id);
+  chapterProgress.lastRecitalLineNumber = line.lineNumber;
+  const lineProgress = chapterProgress.lines[line.lineNumber];
+  const recitalScore = calculateRecitalScore({
+    hints: state.ui.recitalHintCount,
+    attempts: Math.max(state.ui.recitalAttemptCount, 1),
+    exited: true,
+  });
+  lineProgress.recitalExitCount += 1;
+  lineProgress.lastRecitalScore = recitalScore;
+  lineProgress.lastRecitalAttempts = Math.max(state.ui.recitalAttemptCount, 1);
+  lineProgress.lastRecitalHints = state.ui.recitalHintCount;
+  lineProgress.lastRecitalExited = true;
+  lineProgress.lastRecitalOutcome = "exited";
+  state.ui.retryRecitalLineNumber = null;
+  elements.proveAttemptInput.value = "";
+  elements.proveAttemptInput.dataset.inputSource = "";
+  elements.proveHintBox.hidden = true;
+  elements.proveDiff.hidden = true;
+  resetRecitalSession();
+  state.ui.activeMode = "memorize";
+  saveProgress();
+  render();
+  setFeedback(elements.memorizeFeedback, `Recital exited. That line's last recital score was ${recitalScore}, and the recital will restart fresh next time.`, "warning");
+}
+
+function calculateRecitalScore({ hints = 0, attempts = 1, exited = false }) {
+  let score = 100;
+  if (hints >= 1) score -= 10;
+  if (hints >= 2) score -= 15;
+  if (hints >= 3) score -= 20;
+  score -= Math.min(15, Math.max(0, attempts - 1) * 5);
+  if (exited) score -= 15;
+  return clamp(score, 0, 100);
+}
+
+function buildRecitalSummary(lineProgress) {
+  if (!lineProgress || !lineProgress.lastRecitalOutcome) {
+    return "No recital score yet. Start recital and prove a line from memory.";
+  }
+  const outcomeLabel = lineProgress.lastRecitalOutcome === "passed" ? "Passed" : "Exited";
+  return `Last recital: ${outcomeLabel} • Score ${lineProgress.lastRecitalScore ?? 0} • Hints ${lineProgress.lastRecitalHints} • Attempts ${lineProgress.lastRecitalAttempts}${lineProgress.lastRecitalExited ? " • exited" : ""}`;
 }
 
 function maybeCompleteChapter(chapterId) {
@@ -1603,7 +1757,20 @@ function getFocusLine(chapter, mode) {
   if (mode === "memorize") {
     return chapter.lines[Math.min(chapterProgress.memorizeLineIndex, chapter.lines.length - 1)] ?? chapter.lines[0];
   }
+  if (state.ui.retryRecitalLineNumber != null) {
+    return chapter.lines.find((line) => line.lineNumber === state.ui.retryRecitalLineNumber) ?? null;
+  }
   return chapter.lines.find((line) => !chapterProgress.lines[line.lineNumber].mastered) ?? null;
+}
+
+function getRecitalSummaryLine(chapter) {
+  const chapterProgress = getChapterProgress(chapter.id);
+  const focusLine = getFocusLine(chapter, "prove");
+  if (focusLine) return focusLine;
+  if (chapterProgress.lastRecitalLineNumber != null) {
+    return chapter.lines.find((line) => line.lineNumber === chapterProgress.lastRecitalLineNumber) ?? null;
+  }
+  return chapter.lines.find((line) => chapterProgress.lines[line.lineNumber]?.lastRecitalOutcome) ?? null;
 }
 
 function countMasteredLines(sectionId) {
@@ -1754,7 +1921,9 @@ function maybePromoteSpeechRecitalResult(result, target, fromSpeech, strictnessL
     && result.missingImportantWords.length <= strictness.allowedContentMisses + 1
     && (result.metrics?.overlapScore ?? 0) >= 0.72
     && (result.metrics?.orderedScore ?? 0) >= 0.68
-    && (result.metrics?.contentScore ?? 0) >= 0.7;
+    && (result.metrics?.contentScore ?? 0) >= 0.7
+    && (result.diff?.extra?.length ?? 0) === 0
+    && (result.diff?.substitutions?.length ?? 0) === 0;
 
   if (!speechworthy) return result;
 
@@ -1947,8 +2116,8 @@ function cleanSpeechTranscript(transcript, expectedText) {
     .map((word) => {
       if (targetSet.has(word)) return word;
       const bestMatch = findClosestTargetWord(word, targetWords);
-      if (bestMatch.score >= 0.78) return bestMatch.word;
-      if (bestMatch.score >= 0.58 && word.length <= 5) return bestMatch.word;
+      if (bestMatch.score >= 0.92) return bestMatch.word;
+      if (bestMatch.score >= 0.72 && word.length <= 5) return bestMatch.word;
       return null;
     })
     .filter(Boolean);
@@ -1976,8 +2145,11 @@ function repairTranscriptAgainstTarget(answerWords, targetWords) {
   const startsAtBeginning = matchedIndices[0] === 0;
   const reachesEnding = matchedIndices.at(-1) >= targetWords.length - 2;
   const coverage = answerWords.length / Math.max(targetWords.length, 1);
+  const targetContentWords = targetWords.filter((word) => word.length > 3 && !WORD_CONNECTORS.has(word));
+  const answerSet = new Set(answerWords);
+  const missingContentWords = targetContentWords.filter((word) => !answerSet.has(word));
 
-  if (orderedMatch && startsAtBeginning && reachesEnding && coverage >= 0.5) {
+  if (orderedMatch && startsAtBeginning && reachesEnding && coverage >= 0.5 && missingContentWords.length === 0) {
     return targetWords.join(" ");
   }
 
@@ -2120,11 +2292,19 @@ async function toggleWhisperRecording() {
       }
     });
     recorder.addEventListener("stop", async () => {
+      const heardSpeech = state.ui.whisperHeardSpeech;
+      const speechMs = state.ui.whisperSpeechMs;
+      const recordingMs = Math.max(0, performance.now() - (state.ui.whisperRecordingStartedAt || 0));
       const blob = new Blob(state.ui.whisperChunks, { type: recorder.mimeType || "audio/webm" });
       cleanupWhisperRecorder();
+      if (!heardSpeech || speechMs < 220 || recordingMs < 900) {
+        setModeFeedback("No clear speech was heard, so nothing was transcribed. Try again and say the line out loud.", "warning");
+        return;
+      }
       await transcribeWhisperBlob(blob);
     });
     recorder.start();
+    state.ui.whisperRecordingStartedAt = performance.now();
     startWhisperSilenceMonitor(stream, recorder);
     state.ui.isListening = true;
     updateRecordButton();
@@ -2146,6 +2326,9 @@ function cleanupWhisperRecorder() {
   state.ui.whisperSourceNode = null;
   state.ui.whisperSilenceSinceMs = 0;
   state.ui.whisperHeardSpeech = false;
+  state.ui.whisperSpeechMs = 0;
+  state.ui.whisperLastSampleMs = 0;
+  state.ui.whisperRecordingStartedAt = 0;
   state.ui.whisperRecorder?.stream?.getTracks?.().forEach((track) => track.stop());
   state.ui.whisperStream?.getTracks?.().forEach((track) => track.stop());
   state.ui.whisperRecorder = null;
@@ -2166,6 +2349,8 @@ function startWhisperSilenceMonitor(stream, recorder) {
     state.ui.whisperAnalyser = analyser;
     state.ui.whisperSilenceSinceMs = 0;
     state.ui.whisperHeardSpeech = false;
+    state.ui.whisperSpeechMs = 0;
+    state.ui.whisperLastSampleMs = performance.now();
 
     const samples = new Uint8Array(analyser.fftSize);
     const monitor = () => {
@@ -2182,9 +2367,14 @@ function startWhisperSilenceMonitor(stream, recorder) {
       }
       const rms = Math.sqrt(sum / samples.length);
       const now = performance.now();
+      const deltaMs = Math.max(0, now - (state.ui.whisperLastSampleMs || now));
+      state.ui.whisperLastSampleMs = now;
 
-      if (rms > 0.03) {
-        state.ui.whisperHeardSpeech = true;
+      if (rms > 0.045) {
+        state.ui.whisperSpeechMs += deltaMs;
+        if (state.ui.whisperSpeechMs >= 180) {
+          state.ui.whisperHeardSpeech = true;
+        }
         state.ui.whisperSilenceSinceMs = 0;
       } else if (state.ui.whisperHeardSpeech) {
         if (!state.ui.whisperSilenceSinceMs) {
@@ -2259,6 +2449,18 @@ async function transcribeWhisperBlob(blob) {
       return;
     }
 
+    if (line) {
+      const preview = evaluateAttempt(transcript, line.text, state.settings.strictnessLevel);
+      const clearlyOffTarget =
+        preview.score < 0.55
+        || (preview.metrics?.overlapScore ?? 0) < 0.6
+        || (preview.metrics?.orderedScore ?? 0) < 0.55;
+      if (clearlyOffTarget) {
+        setModeFeedback("That recording did not sound close enough to the poem line, so it was not filled in. Try again and say the words clearly.", "warning");
+        return;
+      }
+    }
+
     if (context?.input) {
       context.input.value = transcript;
       context.input.dataset.inputSource = "speech";
@@ -2298,12 +2500,10 @@ function buildTranscriptionPrompt(expectedText) {
     "Concord",
     "phantom ship",
   ];
-  const expectedLine = expectedText ? `The child is probably saying this exact line or something extremely close to it: "${expectedText}".` : "";
   return [
     "This is a child reciting Henry Wadsworth Longfellow's poem Paul Revere's Ride.",
     "Keep unusual poem words intact instead of simplifying them into ordinary speech.",
     `Important poem words and phrases include: ${poemGlossary.join(", ")}.`,
-    expectedLine,
   ].filter(Boolean).join(" ");
 }
 
